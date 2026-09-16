@@ -22,3 +22,15 @@ outputs/
 build/
 dist/
 *.egg-info/
+
+csi-tx/.cache
+csi-tx/build
+csi-tx/compile_commands.json
+csi-tx/sdkconfig.old
+csi-tx/managed_components/
+
+csi-rx/.cache
+csi-rx/build
+csi-rx/compile_commands.json
+csi-rx/sdkconfig.old
+csi-rx/managed_components/
