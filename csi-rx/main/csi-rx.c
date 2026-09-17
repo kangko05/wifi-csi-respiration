@@ -28,6 +28,8 @@
 #include "esp_now.h"
 #include "esp_wifi.h"
 
+#include "csi_resp/csi_record.h"
+
 #define CONFIG_LESS_INTERFERENCE_CHANNEL 36
 #define CONFIG_GAIN_CONTROL 1
 #define CONFIG_WIFI_BAND_MODE WIFI_BAND_MODE_5G_ONLY
@@ -46,8 +48,8 @@
  * and pushes it to a queue, and a low-priority task does the (blocking)
  * formatting and printing. Doing the output inline in the callback stalls the
  * WiFi task and drops most of the packets. */
-#define CSI_BUF_MAX 512 /* bytes of raw CSI per packet; actual len is logged   \
-                         */
+// #define CSI_BUF_MAX \ 512 /* bytes of raw CSI per packet; actual len is
+// logged                   \ */
 #define CSI_QUEUE_LEN 32
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
@@ -58,22 +60,22 @@ static const uint8_t CONFIG_CSI_SEND_MAC[] = {0x1a, 0x00, 0x00,
                                               0x00, 0x00, 0x00};
 static const char *TAG = "csi-recv";
 
-typedef struct {
-    uint32_t seq;          /**< tx-side counter lifted from the payload */
-    uint32_t timestamp;    /**< rx_ctrl.timestamp, hardware capture time */
-    uint32_t dropped;      /**< records lost to queue overflow so far */
-    float compensate_gain; /**< applied by the host, not here */
-    int8_t rssi;
-    int8_t noise_floor;
-    int8_t fft_gain;
-    uint8_t agc_gain;
-    uint8_t channel;
-    uint8_t bb_format;
-    uint8_t first_word_invalid;
-    uint16_t sig_len;
-    uint16_t len;            /**< valid bytes in buf */
-    int8_t buf[CSI_BUF_MAX]; /**< raw, un-compensated CSI */
-} csi_record_t;
+// typedef struct {
+//     uint32_t seq;          /**< tx-side counter lifted from the payload */
+//     uint32_t timestamp;    /**< rx_ctrl.timestamp, hardware capture time */
+//     uint32_t dropped;      /**< records lost to queue overflow so far */
+//     float compensate_gain; /**< applied by the host, not here */
+//     int8_t rssi;
+//     int8_t noise_floor;
+//     int8_t fft_gain;
+//     uint8_t agc_gain;
+//     uint8_t channel;
+//     uint8_t bb_format;
+//     uint8_t first_word_invalid;
+//     uint16_t sig_len;
+//     uint16_t len;            /**< valid bytes in buf */
+//     int8_t buf[CSI_BUF_MAX]; /**< raw, un-compensated CSI */
+// } csi_record_t;
 
 static QueueHandle_t s_csi_queue;
 static uint32_t s_dropped;
