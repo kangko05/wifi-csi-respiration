@@ -1,0 +1,2 @@
+# Collector runtime dependency only. Tests use the standard library (unittest).
+pyserial==3.5

@@ -13,6 +13,9 @@ htmlcov/
 data/
 outputs/
 
+# Test scratch space (kept inside the workspace)
+.tmp-tests/
+
 # Local secrets
 .env
 .env.*
@@ -34,3 +37,5 @@ csi-rx/build
 csi-rx/compile_commands.json
 csi-rx/sdkconfig.old
 csi-rx/managed_components/
+
+*_legacy*
