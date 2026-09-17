@@ -1,4 +1,8 @@
-set(CSI_RESP_SRCS src/preprocess.c)
+set(CSI_RESP_SRCS
+    src/preprocess.c
+    src/csi_utils.c
+    src/amplitude.c
+)
 
 if(ESP_PLATFORM)
     idf_component_register(SRCS ${CSI_RESP_SRCS}
