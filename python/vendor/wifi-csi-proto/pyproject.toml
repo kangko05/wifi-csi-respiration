@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wifi-csi-pipeline"
+version = "0.1.0"
+description = "Modular offline analysis of the repository's ESP32-C5 CSI captures"
+requires-python = ">=3.12"
+dependencies = ["numpy==2.5.3", "scipy==1.18.1", "scikit-learn==1.9.1", "threadpoolctl==3.6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1"]
+viz = ["matplotlib==3.11.2"]
+capture = ["pyserial==3.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"

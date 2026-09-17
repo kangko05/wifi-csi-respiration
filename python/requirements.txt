@@ -1,4 +1,8 @@
-# Collector runtime dependency only. Tests use the standard library (unittest).
+# Collector: pyserial. Adapter/tests: numpy. Tests otherwise use the standard library (unittest).
 pyserial==3.5
 numpy==2.5.3
-pyserial==3.5
+# Legacy comparison (scripts/run_legacy_compare.py, vendor/wifi-csi-proto); versions match the
+# legacy environment recorded for outputs/legacy_run_20260917.
+scipy==1.18.1
+matplotlib==3.11.2
+threadpoolctl==3.6.0
