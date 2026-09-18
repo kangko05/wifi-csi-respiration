@@ -2,6 +2,8 @@ set(CSI_RESP_SRCS
     src/preprocess.c
     src/csi_utils.c
     src/amplitude.c
+    src/filters.c
+    src/phase.c
 )
 
 if(ESP_PLATFORM)
