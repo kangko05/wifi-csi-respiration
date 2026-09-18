@@ -201,9 +201,11 @@ static void print_phase_result(const csi_phase_result_t *phase, size_t used,
         printf("null");
     }
 
-    printf(",\"selected_bins\":[%d,%d,%d,%d,%d]}\n", phase->selected_bins[0],
-           phase->selected_bins[1], phase->selected_bins[2],
-           phase->selected_bins[3], phase->selected_bins[4]);
+    printf(",\"selected_bins\":[");
+    for (size_t i = 0; i < phase->n_selected; ++i) {
+        printf("%s%d", i ? "," : "", phase->selected_bins[i]);
+    }
+    printf("]}\n");
 }
 
 static void print_amplitude_result(const csi_amp_result_t *result, size_t used,

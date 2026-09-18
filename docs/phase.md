@@ -35,7 +35,27 @@ C 실행 인자는 `build/csi_resp_main.exe --stdin --phase`이고 입력 형식
 
 `phase.c`가 이 흐름을 조립하고, Butterworth와 Hampel 필터는 `filters.c`에 있다. 임의 주파수 계산은 double 정밀도 Bluestein 변환을 이용하며 내부 FFT는 `csi_utils.c`의 공통 계산부를 호출한다. 진폭의 float 배열과 위상의 double 복소 배열은 저장 형식만 구분하고 FFT 알고리즘을 공유한다. 0.005Hz는 탐색 격자 간격이며 실제 관측 길이로 정해지는 주파수 분해능과 다르다.
 
-117개 열을 -58..58, 간격 312.5kHz로 해석하는 것은 **기존 HT40 배치 가정**이다. null 평균 크기가 사용 열 평균의 5% 이하인지 검사하지만 물리 배치를 증명하지 않는다. 다른 패킷 형식은 지원하지 않는다.
+기본 설정에서 117개 열을 -58..58, 간격 312.5kHz로 해석하는 것은 **기존 HT40 배치 가정**이다. null 평균 크기가 사용 열 평균의 5% 이하인지 검사하지만 물리 배치를 증명하지 않는다. 기존 PC 실행 명령은 이 기본 프로필을 사용한다.
+
+## 배치와 탐색 범위 설정 (2026-09-19)
+
+`csi_phase_process_with_config(frames, count, &config, &result)`로 배치와 탐색 설정을 전달할 수 있다. 기존 `csi_phase_process()`는 기본 설정을 쓰는 호환 진입점이다.
+
+```c
+csi_phase_config_t config = csi_phase_default_config();
+config.min_hz = 0.1;
+config.max_hz = 0.6;
+config.frequency_step_hz = 0.01;
+
+csi_phase_result_t result;
+int status = csi_phase_process_with_config(frames, count, &config, &result);
+```
+
+다른 신호 배치는 호출부에서 `config.n_bins`와 `config.bins[k]`를 채운다. 각 원본 열의 역할은 USED(분석), NULL(null 크기 검사), SKIP(제외)이며 USED 열마다 실제 주파수 오프셋 `frequency_hz`를 지정한다. USED 열은 주파수 오름차순이어야 한다. 입력 열 수와 배치 길이가 다르면 오류로 반환한다. `subcarrier_spacing_hz`는 초기 시간 오차 추정에 사용한다. 패킷 길이만으로 물리 배치를 추측하지 않는다.
+
+`n_columns`는 USED 열 개수, `n_frequencies`는 탐색 범위/간격에서 계산한다. 끝점이 간격의 배수가 아니면 마지막 격자는 상한 아래에서 끝난다. `top_columns`도 설정이고, 결과에서 `n_selected`개만 읽는다. `CSI_MAX_SUBCARRIERS`는 프로토콜상 배열 용량이며 실제 분석 열 개수가 아니다. 주파수 격자 버퍼는 계산한 길이로 할당한다. 117열·114사용열·191주파수에 의존하는 계산 코드는 제거했다.
+
+기본 설정의 공백/길이/신뢰도 기준은 유지했다. 13열 중 10열 사용, 3개/7개 선택, 변경된 주파수 대역·격자, null 없는 배치와 잘못된 설정을 테스트한다.
 
 ## 비교 결과
 
