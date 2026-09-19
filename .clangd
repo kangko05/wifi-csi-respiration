@@ -1,0 +1,6 @@
+# Host sources use MinGW GCC. Do not apply this target to ESP-IDF firmware.
+If:
+  PathMatch: (src|include|tests|benchmarks)/.*
+CompileFlags:
+  CompilationDatabase: build
+  Add: [--target=x86_64-w64-windows-gnu]

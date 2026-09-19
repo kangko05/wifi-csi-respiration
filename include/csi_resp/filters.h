@@ -49,3 +49,7 @@ size_t fir_filter_valid(const float *input, size_t n_rows, size_t n_bins,
  * Full-record noncausal filter; no claim of clean edge support. 0 success. */
 int butter_bandpass_zero_phase(double *x, size_t n, double fs,
                                double low_hz, double high_hz);
+
+/* 11칸 중앙값/MAD 기반 Hampel 필터. 3 sigma, 가장자리는 끝 값 반복.
+ * 입력을 덮어쓴다. 성공 0, 입력/메모리 오류 1. */
+int hampel_filter(double *x, size_t n);
