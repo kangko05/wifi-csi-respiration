@@ -1,2 +1,8 @@
-idf_component_register(SRCS "csi-rx.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(SRCS
+    csi-rx.c
+    init_wifi.c
+    csi_capture.c
+    csi_window.c
+    csi_process.c
+    queue.c
+INCLUDE_DIRS ".")
