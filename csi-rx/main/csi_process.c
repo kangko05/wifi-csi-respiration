@@ -13,6 +13,23 @@ static const char *TAG = "csi-process";
 static csi_window_t s_window;
 static TaskHandle_t s_task;
 
+static void log_heap_usage(const char *name, uint32_t caps) {
+    multi_heap_info_t info;
+    heap_caps_get_info(&info, caps);
+    ESP_LOGI(TAG,
+             "heap %s (bytes): allocated=%u free=%u min_free=%u largest=%u",
+             name, (unsigned)info.total_allocated_bytes,
+             (unsigned)info.total_free_bytes, (unsigned)info.minimum_free_bytes,
+             (unsigned)info.largest_free_block);
+}
+
+static void log_memory_usage(void) {
+    /* Disjoint byte-addressable heap pools; excludes static firmware sections.
+     * allocated includes task stacks and other live heap allocations. */
+    log_heap_usage("internal", MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    log_heap_usage("psram", MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+}
+
 static void csi_process_task(void *arg) {
     QueueHandle_t queue = (QueueHandle_t)arg;
     csi_record_t record;
@@ -21,6 +38,8 @@ static void csi_process_task(void *arg) {
     uint32_t rejected = 0;
     int64_t last_receive_us = 0;
     int64_t last_report_us = esp_timer_get_time();
+    int64_t last_heap_report_us = last_report_us;
+    log_memory_usage();
 
     for (;;) {
         BaseType_t received = xQueueReceive(queue, &record, pdMS_TO_TICKS(100));
@@ -61,6 +80,11 @@ static void csi_process_task(void *arg) {
             /* Future respiration estimation belongs here, in this same task.
              * No other task may read or mutate s_window concurrently. */
             last_report_us = now;
+        }
+        /* Heap walks are diagnostic work: report every five seconds. */
+        if (now - last_heap_report_us >= INT64_C(5000000)) {
+            log_memory_usage();
+            last_heap_report_us = now;
         }
     }
 }
