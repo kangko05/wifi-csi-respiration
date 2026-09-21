@@ -35,7 +35,7 @@ csi_phase_config_t csi_phase_default_config(void) {
 
     for (size_t k = 0; k < config.n_bins; ++k) {
         config.bins[k].frequency_hz =
-            ((double)k - 58) * config.subcarrier_spacing_hz;
+            ((double)k - 58) * config.subcarrier_spacing_hz; // 58 = (117-1) / 2
         config.bins[k].role =
             k >= 57 && k <= 59 ? CSI_PHASE_BIN_NULL : CSI_PHASE_BIN_USED;
     }
@@ -110,9 +110,7 @@ static int phase_parameters_init(phase_parameters *p,
     return 0;
 }
 
-static int raw_bin(int k, const phase_parameters *p) {
-    return p->raw_bins[k];
-}
+static int raw_bin(int k, const phase_parameters *p) { return p->raw_bins[k]; }
 
 static double omega(int k, const phase_parameters *p) {
     return 2 * CSI_PI * p->config->bins[raw_bin(k, p)].frequency_hz;

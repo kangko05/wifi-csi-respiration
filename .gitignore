@@ -37,3 +37,5 @@ csi-rx/build
 csi-rx/compile_commands.json
 csi-rx/sdkconfig.old
 csi-rx/managed_components/
+
+.clangd

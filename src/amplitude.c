@@ -212,10 +212,16 @@ static size_t amp_downsample(float *filtered, size_t n_filtered, size_t n_bins,
                              uint64_t *output_step_us) {
     if (filtered == NULL || output_start_us == NULL || output_step_us == NULL ||
         down == 0 || n_bins == 0 ||
-        n_filtered > SIZE_MAX / sizeof(float) / n_bins ||
-        down > UINT64_MAX / CSI_INTERP_STEP_US) {
+        n_filtered > SIZE_MAX / sizeof(float) / n_bins) {
         return 0;
     }
+
+#if SIZE_MAX > UINT64_MAX / CSI_INTERP_STEP_US
+    /* Only wider size_t targets can overflow the uint64_t output step. */
+    if (down > UINT64_MAX / CSI_INTERP_STEP_US) {
+        return 0;
+    }
+#endif
 
     size_t offset = (down - half % down) % down;
 
