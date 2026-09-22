@@ -1,0 +1,35 @@
+menu "CSI RX experiments"
+config CSI_RX_AMP_BENCHMARK
+    bool "Run amplitude optimization comparison on a frozen window"
+    default n
+    help
+        Capture one 60-second window, disable CSI reception and run all
+        experimental variants. Reboot to collect again. Not continuous mode.
+config CSI_RX_AMP_Q15_BENCHMARK
+    bool "B0: compare float and Q15 FFT on the same frozen window"
+    depends on CSI_RX_AMP_BENCHMARK
+    default n
+    help
+        FFT replacement only. FIR, window length, bins and oversampling stay
+        unchanged. Q15 is experimental and is not used in normal RX mode.
+config CSI_RX_AMP_FIXED_PREPROCESS_BENCHMARK
+    bool "B1: compare fixed preprocessing and Q15 FFT"
+    depends on CSI_RX_AMP_Q15_BENCHMARK
+    default n
+    help
+        Compare float, Q15 FFT, Q12 amplitude/interpolation with Q23 FIR,
+        and their combination on the same 60-second input. Experimental only.
+config CSI_RX_AMP_FLOAT_MATH
+    bool "Use float FFT butterflies and FIR accumulation"
+    default y
+    help
+        Single-precision experimental path validated against recorded input.
+        The host/reference API remains double by default.
+config CSI_RX_AMP_FFT_OVERSAMPLING
+    int "Amplitude PSD FFT oversampling"
+    range 1 4
+    default 4
+    help
+        4 preserves the original frequency grid. 1 reduces zero padding and
+        compute time but changes the PSD frequency grid and some candidates.
+endmenu

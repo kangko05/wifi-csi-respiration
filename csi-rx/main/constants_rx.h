@@ -21,3 +21,6 @@
 /* 60 seconds at nominal 100 Hz, with 10% capacity headroom. */
 #define CSI_RX_WINDOW_SECONDS 60
 #define CSI_RX_WINDOW_CAPACITY 6600
+
+/* Default 60s amplitude PSD uses 4096; ACF reuses it at 2048 points. */
+#define CSI_RX_AMP_FFT_CAPACITY 4096
