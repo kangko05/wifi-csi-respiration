@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = ROOT.parent / "data"  # shared raw captures live at the repository root
+DATA_ROOT = ROOT / "data"  # shared raw captures live at the repository root
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from summarize_by_conditions import GROUP_ORDER, group_of  # noqa: E402

@@ -25,11 +25,11 @@ def main():
         parser.error("phase run must be under this repository's outputs")
     if (output/"comparison.csv").exists():
         parser.error("comparison already exists")
-    legacy=ROOT/"python/outputs/legacy_run_20260917"
+    legacy=ROOT/"outputs/legacy_run_20260917"
     legacy_path=legacy/"report/summary.csv"
     old={r["session_id"]:r for r in read_csv(legacy_path) if r["method"]=="phase"}
     amp={r["session"]:r for r in read_csv(args.amplitude_run/"summary.csv")}
-    refs_path=ROOT/"python/references/manual_breath_counts_20260916.csv"
+    refs_path=ROOT/"references/manual_breath_counts_20260916.csv"
     refs={r["session_id"]:r for r in read_csv(refs_path)}
     rows=[]
     max_diff={key:0. for key in ("diagnostic_bpm","spectral_bpm","peak_count_bpm","sharpness","agreement_bpm")}

@@ -1,9 +1,10 @@
 """Decode recorded base64 -> C main --stdin -> per-session JSON and summary.csv.
 
 Run from repository root:
-  python/.venv/Scripts/python.exe python/scripts/run_c_amplitude.py
+  .venv/bin/python scripts/run_c_amplitude.py
   ... --session 20260916T060200_034260_9dd9fd80
 No signal processing is performed in Python. Each complete recording is one window.
+Historical wrapper: the C sources/CMake project are not part of this layout.
 """
 from __future__ import annotations
 
@@ -18,8 +19,8 @@ from pathlib import Path
 import subprocess
 import sys
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "python/src"))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 from csi_collect.wire import parse_line
 
 FIELDS = ("seq", "local_timestamp", "dropped", "compensate_gain", "rssi",

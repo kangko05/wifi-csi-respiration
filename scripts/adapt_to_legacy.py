@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = ROOT.parent / "data"  # shared raw captures live at the repository root
+DATA_ROOT = ROOT / "data"  # shared raw captures live at the repository root
 sys.path.insert(0, str(ROOT / "src"))
 
 from csi_adapt.legacy_format import ADAPTER_VERSION, convert_session, sha256_file  # noqa: E402

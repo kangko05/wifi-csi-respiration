@@ -18,7 +18,7 @@ EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_INTERRUPTED = 130
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 DESCRIPTION = """\
 Record the raw ESP32-C5 RX serial stream into a new session directory.
