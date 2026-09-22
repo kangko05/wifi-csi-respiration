@@ -1,0 +1,15 @@
+WARNING: The directory '/home/kang/.cache/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.65.0
+kiwisolver==1.5.1
+matplotlib==3.11.2
+numpy==2.5.3
+packaging==26.3
+pillow==12.3.0
+pyparsing==3.3.3
+pyserial==3.5
+python-dateutil==2.9.0.post0
+scipy==1.18.1
+six==1.17.0
+threadpoolctl==3.6.0
