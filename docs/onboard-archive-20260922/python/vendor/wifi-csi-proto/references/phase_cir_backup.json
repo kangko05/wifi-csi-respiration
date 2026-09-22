@@ -1,0 +1,74 @@
+{
+  "snapshot_date": "2026-09-16",
+  "source_root": "C:\\Users\\kang\\Desktop\\wifi-csi-backup\\csi",
+  "destination_root": "src\\csi_pipeline\\_vendor\\wifi_csi_backup",
+  "files": [
+    {
+      "relative_path": "__init__.py",
+      "sha256": "e5a0b410ec16b7cc33e9c27919a1bc5f6be7916c598c8498d52f22ab01e967de"
+    },
+    {
+      "relative_path": "model.py",
+      "sha256": "1c17edca8de0a9546da1e88fa8d38be578b45ec16f9e710230386bf95a46e252"
+    },
+    {
+      "relative_path": "layout.py",
+      "sha256": "f2b9af152bbd06fe68bd4a920d1da7afa876d6d344c04da87da0c65e5a240d3a"
+    },
+    {
+      "relative_path": "pipeline.py",
+      "sha256": "727408d288dde57790976b72c5e7aa09a147e0e5caf0aacfc31f860b2713069d"
+    },
+    {
+      "relative_path": "preprocess/__init__.py",
+      "sha256": "66c024cf4cdc0ea5cb2b58a20f8b8ea92581799ad81b7a8034fbe9953f9cda05"
+    },
+    {
+      "relative_path": "preprocess/filters.py",
+      "sha256": "9caef55b8060b5c1b838b95ad18a1a179489cbb83ab6e89fc6678e25e147d47e"
+    },
+    {
+      "relative_path": "preprocess/gain.py",
+      "sha256": "1fd7b687fc2ab0018fd9990307ac3c45add08ca004e0d9e21c282d564c7085ba"
+    },
+    {
+      "relative_path": "preprocess/phase.py",
+      "sha256": "9e475bd4b21656f27dde04cfa768cdb57101acbaa3211c16f5568eca196c0a44"
+    },
+    {
+      "relative_path": "preprocess/resample.py",
+      "sha256": "1eed7bbe17bb0a7a2f06675f8b753fb0b55dc4ad874a436bf26d6db70d87363e"
+    },
+    {
+      "relative_path": "features/__init__.py",
+      "sha256": "482f57643e3c2a6374cf5067d95ccc66975414b003762d2e5ac46f38240da7a1"
+    },
+    {
+      "relative_path": "features/cir.py",
+      "sha256": "39d09d832039d822d789e95a5dd8b37f10357ccddc1e8243194844956fc0e66d"
+    },
+    {
+      "relative_path": "features/doppler.py",
+      "sha256": "f0413176f7e4f1bf4ecc75c9db14416d437c07c31ac806af2784d893a5ab91c9"
+    },
+    {
+      "relative_path": "features/selection.py",
+      "sha256": "68ad6e44bb00fcdc248b1c896cb45cbcc64f95b71787c356564a40f7c8b3922a"
+    },
+    {
+      "relative_path": "estimate/__init__.py",
+      "sha256": "a2d4f3c189005ec2e94293e2edd4a8d9a3ad26c2fbb4ef11351f8b2ca7fa5c56"
+    },
+    {
+      "relative_path": "estimate/quality.py",
+      "sha256": "3d83ad02a87d39d01f874649dd735f7d1350cc3b59e4ca425377da85415aa2bb"
+    },
+    {
+      "relative_path": "estimate/rate.py",
+      "sha256": "86bad92d582a1232d12d41fd517c9acc3465d9a60d1470d7dbe621d567e11d2a"
+    }
+  ],
+  "byte_identical": true,
+  "runtime_external_dependency": false,
+  "notes": "Unmodified computational snapshot. Adapter handles input masks, gap limits, provenance, and independent decisions. Original comments are historical claims, not validated properties of these captures."
+}

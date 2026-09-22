@@ -1,0 +1,20 @@
+{
+  "created_at_utc": "2026-09-17T03:19:59.685337+00:00",
+  "source_text_verbatim": "0 24 30 27 33 32 37 36 30 33 34 32 34 28 30 33 30 28 23",
+  "n_tokens": 19,
+  "supplied_by": "user, via Codex task message, after estimation of legacy_run_20260917",
+  "supplied_after_estimation": true,
+  "order": "chronological by session_id (oldest first)",
+  "interpretation": "User-reported total breath count over the nominal 120 s full-capture interval, assigned in chronological session order (oldest first). Interval interpretation is inferred from the task; exact start/stop synchronization and counting uncertainty were not independently confirmed by the user. Not a synchronized reference.",
+  "nominal_interval_s": 120.0,
+  "target_formula": "reference_bpm = count * 60 / 120 for occupied sessions only",
+  "empty_room_policy": "count 0 = occupancy-absence reference; never a 0 bpm regression target",
+  "missing": [
+    "20260916T063134_772384_aca6e871",
+    "20260916T063413_795063_e446ed62"
+  ],
+  "missing_policy": "no count supplied; left unavailable, nothing invented",
+  "legacy_reference_labels_used": false,
+  "csv_path": "C:\\Users\\kang\\workspace\\wifi-csi-respiration\\references\\manual_breath_counts_20260916.csv",
+  "csv_sha256": "807671f6493d5fb38f08deabd4f56ce99fc35430da866ace062224d9e0055ec5"
+}

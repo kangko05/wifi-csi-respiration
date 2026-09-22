@@ -1,0 +1,25 @@
+test_downsample_alignment_and_passthrough (test_amplitude_raw.RawAmplitudeTests.test_downsample_alignment_and_passthrough) ... ok
+test_flat_short_gap_duplicates_and_excluded (test_amplitude_raw.RawAmplitudeTests.test_flat_short_gap_duplicates_and_excluded) ... ok
+test_memory_bound_and_allocation_failures (test_amplitude_raw.RawAmplitudeTests.test_memory_bound_and_allocation_failures) ... ok
+test_recorded_sessions (test_amplitude_raw.RawAmplitudeTests.test_recorded_sessions) ... ok
+test_synthetic_wrap_ring_jitter_masks_and_gain (test_amplitude_raw.RawAmplitudeTests.test_synthetic_wrap_ring_jitter_masks_and_gain) ... ok
+test_fft_inverse (test_amplitude_reference.AmplitudeReferenceTests.test_fft_inverse) ... ok
+test_pipeline_reference_and_candidate (test_amplitude_reference.AmplitudeReferenceTests.test_pipeline_reference_and_candidate) ... ok
+test_psd_density_and_linear_acf (test_amplitude_reference.AmplitudeReferenceTests.test_psd_density_and_linear_acf) ... ok
+test_score_disagreement_and_plateau (test_amplitude_reference.AmplitudeReferenceTests.test_score_disagreement_and_plateau) ... ok
+test_short_flat_invalid_and_no_retention (test_amplitude_reference.AmplitudeReferenceTests.test_short_flat_invalid_and_no_retention) ... ok
+test_arbitrary_frequency_spectrum (test_phase_reference.PhaseReferenceTests.test_arbitrary_frequency_spectrum) ... ok
+test_butterworth_and_peak_count (test_phase_reference.PhaseReferenceTests.test_butterworth_and_peak_count) ... ok
+test_complete_synthetic_pipeline (test_phase_reference.PhaseReferenceTests.test_complete_synthetic_pipeline) ... ok
+test_configured_layout_and_frequency_grid (test_phase_reference.PhaseReferenceTests.test_configured_layout_and_frequency_grid) ... ok
+test_flat_wrap_masks_and_gaps (test_phase_reference.PhaseReferenceTests.test_flat_wrap_masks_and_gaps) ... ok
+test_los_correction (test_phase_reference.PhaseReferenceTests.test_los_correction) ... ok
+test_shared_complex_fft (test_phase_reference.PhaseReferenceTests.test_shared_complex_fft) ... ok
+test_backwards_and_layout_changes_rejected (test_recorded_runner.RunnerTests.test_backwards_and_layout_changes_rejected) ... ok
+test_bad_lines_recorded_without_time_compression (test_recorded_runner.RunnerTests.test_bad_lines_recorded_without_time_compression) ... ok
+test_signed_iq_metadata_and_wrap_preserved (test_recorded_runner.RunnerTests.test_signed_iq_metadata_and_wrap_preserved) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 22.714s
+
+OK

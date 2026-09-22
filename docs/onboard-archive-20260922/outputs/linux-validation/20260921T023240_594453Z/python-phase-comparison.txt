@@ -1,0 +1,32 @@
+{
+  "sessions": 21,
+  "python_parity_sessions": 21,
+  "maximum_python_difference": {
+    "diagnostic_bpm": 2.1316282072803006e-14,
+    "spectral_bpm": 2.1316282072803006e-14,
+    "peak_count_bpm": 3.552713678800501e-15,
+    "sharpness": 4.291678123991005e-12,
+    "agreement_bpm": 2.1316282072803006e-14
+  },
+  "occupied": 18,
+  "phase_accepted": 17,
+  "phase_accepted_mae_bpm": 0.6764705882352943,
+  "phase_all_diagnostic_mae_bpm": 2.7055555555555557,
+  "amplitude_all_diagnostic_mae_bpm": 2.8804796006944446,
+  "phase_accepted_within_1_1": 12,
+  "phase_accepted_within_2_2": 17,
+  "empty_sessions": 3,
+  "empty_phase_accepted": 2,
+  "empty_amplitude_accepted": 0,
+  "notes": [
+    "Manual counts are unsynchronized full-record references, evaluation only.",
+    "Frozen Python reference reused; numerical stages independently tested.",
+    "Amplitude and phase acceptance rules and analyzed edge support differ.",
+    "Two complete empty captures and one interrupted empty capture are separate cases."
+  ],
+  "reference_sha256": {
+    "/home/kang/.workspace/wifi-csi-respiration/python/outputs/legacy_run_20260917/report/summary.csv": "bedaaa2e76a3074a0734034975956c4cace649d7c69e8c0c575b622758f29ab9",
+    "/home/kang/.workspace/wifi-csi-respiration/python/references/manual_breath_counts_20260916.csv": "807671f6493d5fb38f08deabd4f56ce99fc35430da866ace062224d9e0055ec5",
+    "outputs/linux-validation/20260921T023240_594453Z/amplitude/summary.csv": "02f28c54adc6a6538c3c1fa95546b7b8879d1b71702998b5582f0aacea85afca"
+  }
+}

@@ -1,0 +1,13 @@
+User-provided RX boot-log excerpt, received 2026-09-21 (not a new capture by the agent):
+I (207) app_init: Project name:     csi-rx
+I (207) app_init: App version:      e653ce5-dirty
+I (208) app_init: Compile time:     Sep 16 2026 13:48:37
+I (209) app_init: ELF file SHA256:  7c912a3ff...
+I (209) app_init: ESP-IDF:          v6.0.3
+I (211) efuse_init: Chip rev:         v1.2
+I (211) heap_init: Initializing. RAM available for dynamic allocation:
+I (212) heap_init: At 4081F060 len 0003D540 (245 KiB): RAM
+I (213) heap_init: At 4085C5A0 len 00002F58 (11 KiB): RAM
+I (213) heap_init: At 50000000 len 00003FE8 (15 KiB): RTCRAM
+W (215) spi_flash: Detected size(8192k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+I (261) main_task: Calling app_main()

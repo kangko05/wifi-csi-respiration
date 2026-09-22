@@ -1,0 +1,100 @@
+Executing action: all (aliases: build)
+Running ninja in directory /home/kang/.workspace/wifi-csi-respiration/csi-rx/build
+Executing "ninja all"...
+[0/1] Re-running CMake...
+-- Minimal build - OFF
+-- Building ESP-IDF components for target esp32c5
+NOTE: Cannot establish a connection to the component registry. Skipping checks 
+of dependency changes.
+NOTE: Processing 3 dependencies:
+NOTE: [1/3] espressif/cmake_utilities (0.5.3)
+NOTE: [2/3] espressif/esp_csi_gain_ctrl (0.1.5)
+NOTE: [3/3] idf (6.0.3)
+-- KCONFIG_REPORT_VERBOSITY not set, using default
+-- Project sdkconfig file /home/kang/.workspace/wifi-csi-respiration/csi-rx/sdkconfig
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/bt/host/nimble/Kconfig.in:1453: BT_NIMBLE_MESH_PROVISIONER: 'default 0' is not a valid bool value (only 'y' and 'n' are allowed). Value is treated as 'n'.
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs/Kconfig:230: FATFS_PRINT_LLI: 'default 0' is not a valid bool value (only 'y' and 'n' are allowed). Value is treated as 'n'.
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs/Kconfig:235: FATFS_PRINT_FLOAT: 'default 0' is not a valid bool value (only 'y' and 'n' are allowed). Value is treated as 'n'.
+NOTE: Kconfig parser version: 1
+NOTE: Kconfig defaults policy: use sdkconfig
+NOTE: Status: Finished successfully
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/riscv/ld/rom.api.ld
+-- App "csi-rx" version: 7c5cc4b-dirty
+-- Setting up mbedtls configuration
+-- Linkage type is PUBLIC
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_wdt/esp32c5/rom.wdt.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_system/ld/esp32c5/memory.ld.in
+--   -> Preprocessing .in script: /home/kang/.espressif/v6.0.3/esp-idf/components/esp_system/ld/esp32c5/memory.ld.in
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_system/ld/esp32c5/sections.ld.in
+--   -> Preprocessing .in script: /home/kang/.espressif/v6.0.3/esp-idf/components/esp_system/ld/esp32c5/sections.ld.in
+--   -> Applying ldgen processing: /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/esp-idf/esp_system/ld/sections.ld.in
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.api.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.rvfp.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.systimer.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.version.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.phy.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.coexist.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.net80211.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.pp.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.libc.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom/esp32c5/ld/esp32c5.rom.heap.ld
+-- Adding linker script /home/kang/.espressif/v6.0.3/esp-idf/components/soc/esp32c5/ld/esp32c5.peripherals.ld
+-- Component idf::esp_trace will be linked with -Wl,--whole-archive
+-- Components: app_trace app_update bootloader bootloader_support bt cmock console cxx driver efuse esp-tls esp_adc esp_app_format esp_blockdev esp_blockdev_util esp_bootloader_format esp_coex esp_common esp_driver_ana_cmpr esp_driver_bitscrambler esp_driver_cam esp_driver_dac esp_driver_dma esp_driver_gpio esp_driver_gptimer esp_driver_i2c esp_driver_i2s esp_driver_i3c esp_driver_isp esp_driver_jpeg esp_driver_ledc esp_driver_mcpwm esp_driver_parlio esp_driver_pcnt esp_driver_ppa esp_driver_rmt esp_driver_sd_intf esp_driver_sdio esp_driver_sdm esp_driver_sdmmc esp_driver_sdspi esp_driver_spi esp_driver_touch_sens esp_driver_tsens esp_driver_twai esp_driver_uart esp_driver_usb_serial_jtag esp_eth esp_event esp_gdbstub esp_hal_ana_cmpr esp_hal_ana_conv esp_hal_cam esp_hal_clock esp_hal_dma esp_hal_gpio esp_hal_gpspi esp_hal_i2c esp_hal_i2s esp_hal_ieee802154 esp_hal_jpeg esp_hal_lcd esp_hal_ledc esp_hal_mcpwm esp_hal_mspi esp_hal_parlio esp_hal_pcnt esp_hal_pmu esp_hal_ppa esp_hal_rmt esp_hal_rtc_timer esp_hal_sd esp_hal_security esp_hal_timg esp_hal_touch_sens esp_hal_twai esp_hal_uart esp_hal_usb esp_hal_wdt esp_hid esp_http_client esp_http_server esp_https_ota esp_https_server esp_hw_support esp_lcd esp_libc esp_local_ctrl esp_mm esp_netif esp_netif_stack esp_partition esp_phy esp_pm esp_psram esp_ringbuf esp_rom esp_security esp_stdio esp_system esp_tee esp_timer esp_trace esp_usb_cdc_rom_console esp_wifi espcoredump espressif__cmake_utilities espressif__esp_csi_gain_ctrl esptool_py fatfs freertos hal heap http_parser idf_test ieee802154 log lwip main mbedtls nvs_flash nvs_sec_provider openthread partition_table protobuf-c protocomm pthread riscv rt sdmmc soc spi_flash spiffs tcp_transport ulp unity vfs wear_levelling wifi-csi-respiration wpa_supplicant
+-- Component paths: /home/kang/.espressif/v6.0.3/esp-idf/components/app_trace /home/kang/.espressif/v6.0.3/esp-idf/components/app_update /home/kang/.espressif/v6.0.3/esp-idf/components/bootloader /home/kang/.espressif/v6.0.3/esp-idf/components/bootloader_support /home/kang/.espressif/v6.0.3/esp-idf/components/bt /home/kang/.espressif/v6.0.3/esp-idf/components/cmock /home/kang/.espressif/v6.0.3/esp-idf/components/console /home/kang/.espressif/v6.0.3/esp-idf/components/cxx /home/kang/.espressif/v6.0.3/esp-idf/components/driver /home/kang/.espressif/v6.0.3/esp-idf/components/efuse /home/kang/.espressif/v6.0.3/esp-idf/components/esp-tls /home/kang/.espressif/v6.0.3/esp-idf/components/esp_adc /home/kang/.espressif/v6.0.3/esp-idf/components/esp_app_format /home/kang/.espressif/v6.0.3/esp-idf/components/esp_blockdev /home/kang/.espressif/v6.0.3/esp-idf/components/esp_blockdev_util /home/kang/.espressif/v6.0.3/esp-idf/components/esp_bootloader_format /home/kang/.espressif/v6.0.3/esp-idf/components/esp_coex /home/kang/.espressif/v6.0.3/esp-idf/components/esp_common /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_ana_cmpr /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_bitscrambler /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_cam /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_dac /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_dma /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_gpio /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_gptimer /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_i2c /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_i2s /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_i3c /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_isp /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_jpeg /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_ledc /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_mcpwm /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_parlio /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_pcnt /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_ppa /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_rmt /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_sd_intf /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_sdio /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_sdm /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_sdmmc /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_sdspi /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_spi /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_touch_sens /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_tsens /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_twai /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_uart /home/kang/.espressif/v6.0.3/esp-idf/components/esp_driver_usb_serial_jtag /home/kang/.espressif/v6.0.3/esp-idf/components/esp_eth /home/kang/.espressif/v6.0.3/esp-idf/components/esp_event /home/kang/.espressif/v6.0.3/esp-idf/components/esp_gdbstub /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_ana_cmpr /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_ana_conv /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_cam /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_clock /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_dma /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_gpio /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_gpspi /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_i2c /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_i2s /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_ieee802154 /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_jpeg /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_lcd /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_ledc /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_mcpwm /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_mspi /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_parlio /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_pcnt /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_pmu /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_ppa /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_rmt /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_rtc_timer /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_sd /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_security /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_timg /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_touch_sens /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_twai /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_uart /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_usb /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hal_wdt /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hid /home/kang/.espressif/v6.0.3/esp-idf/components/esp_http_client /home/kang/.espressif/v6.0.3/esp-idf/components/esp_http_server /home/kang/.espressif/v6.0.3/esp-idf/components/esp_https_ota /home/kang/.espressif/v6.0.3/esp-idf/components/esp_https_server /home/kang/.espressif/v6.0.3/esp-idf/components/esp_hw_support /home/kang/.espressif/v6.0.3/esp-idf/components/esp_lcd /home/kang/.espressif/v6.0.3/esp-idf/components/esp_libc /home/kang/.espressif/v6.0.3/esp-idf/components/esp_local_ctrl /home/kang/.espressif/v6.0.3/esp-idf/components/esp_mm /home/kang/.espressif/v6.0.3/esp-idf/components/esp_netif /home/kang/.espressif/v6.0.3/esp-idf/components/esp_netif_stack /home/kang/.espressif/v6.0.3/esp-idf/components/esp_partition /home/kang/.espressif/v6.0.3/esp-idf/components/esp_phy /home/kang/.espressif/v6.0.3/esp-idf/components/esp_pm /home/kang/.espressif/v6.0.3/esp-idf/components/esp_psram /home/kang/.espressif/v6.0.3/esp-idf/components/esp_ringbuf /home/kang/.espressif/v6.0.3/esp-idf/components/esp_rom /home/kang/.espressif/v6.0.3/esp-idf/components/esp_security /home/kang/.espressif/v6.0.3/esp-idf/components/esp_stdio /home/kang/.espressif/v6.0.3/esp-idf/components/esp_system /home/kang/.espressif/v6.0.3/esp-idf/components/esp_tee /home/kang/.espressif/v6.0.3/esp-idf/components/esp_timer /home/kang/.espressif/v6.0.3/esp-idf/components/esp_trace /home/kang/.espressif/v6.0.3/esp-idf/components/esp_usb_cdc_rom_console /home/kang/.espressif/v6.0.3/esp-idf/components/esp_wifi /home/kang/.espressif/v6.0.3/esp-idf/components/espcoredump /home/kang/.workspace/wifi-csi-respiration/csi-rx/managed_components/espressif__cmake_utilities /home/kang/.workspace/wifi-csi-respiration/csi-rx/managed_components/espressif__esp_csi_gain_ctrl /home/kang/.espressif/v6.0.3/esp-idf/components/esptool_py /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs /home/kang/.espressif/v6.0.3/esp-idf/components/freertos /home/kang/.espressif/v6.0.3/esp-idf/components/hal /home/kang/.espressif/v6.0.3/esp-idf/components/heap /home/kang/.espressif/v6.0.3/esp-idf/components/http_parser /home/kang/.espressif/v6.0.3/esp-idf/components/idf_test /home/kang/.espressif/v6.0.3/esp-idf/components/ieee802154 /home/kang/.espressif/v6.0.3/esp-idf/components/log /home/kang/.espressif/v6.0.3/esp-idf/components/lwip /home/kang/.workspace/wifi-csi-respiration/csi-rx/main /home/kang/.espressif/v6.0.3/esp-idf/components/mbedtls /home/kang/.espressif/v6.0.3/esp-idf/components/nvs_flash /home/kang/.espressif/v6.0.3/esp-idf/components/nvs_sec_provider /home/kang/.espressif/v6.0.3/esp-idf/components/openthread /home/kang/.espressif/v6.0.3/esp-idf/components/partition_table /home/kang/.espressif/v6.0.3/esp-idf/components/protobuf-c /home/kang/.espressif/v6.0.3/esp-idf/components/protocomm /home/kang/.espressif/v6.0.3/esp-idf/components/pthread /home/kang/.espressif/v6.0.3/esp-idf/components/riscv /home/kang/.espressif/v6.0.3/esp-idf/components/rt /home/kang/.espressif/v6.0.3/esp-idf/components/sdmmc /home/kang/.espressif/v6.0.3/esp-idf/components/soc /home/kang/.espressif/v6.0.3/esp-idf/components/spi_flash /home/kang/.espressif/v6.0.3/esp-idf/components/spiffs /home/kang/.espressif/v6.0.3/esp-idf/components/tcp_transport /home/kang/.espressif/v6.0.3/esp-idf/components/ulp /home/kang/.espressif/v6.0.3/esp-idf/components/unity /home/kang/.espressif/v6.0.3/esp-idf/components/vfs /home/kang/.espressif/v6.0.3/esp-idf/components/wear_levelling /home/kang/.workspace/wifi-csi-respiration /home/kang/.espressif/v6.0.3/esp-idf/components/wpa_supplicant
+-- Configuring done (6.6s)
+-- Generating done (0.7s)
+-- Build files have been written to: /home/kang/.workspace/wifi-csi-respiration/csi-rx/build
+[1/14] Building C object esp-idf/esp_app_format/CMakeFiles/__idf_esp_app_format.dir/esp_app_desc.c.obj
+[2/14] Linking C static library esp-idf/esp_app_format/libesp_app_format.a
+[3/14] Performing build step for 'bootloader'
+[1/1] cd /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/bootloader && /home/kang/.espressif/tools/python/v6.0.3/venv/bin/python /home/kang/.espressif/v6.0.3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x2000 /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/bootloader/bootloader.bin
+Bootloader binary size 0x57c0 bytes. 0x840 bytes (9%) free.
+[4/14] No install step for 'bootloader'
+[5/14] Completed 'bootloader'
+[6/14] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/csi_process.c.obj
+[7/14] Building C object esp-idf/wifi-csi-respiration/CMakeFiles/__idf_wifi-csi-respiration.dir/src/amplitude.c.obj
+[8/14] Linking C static library esp-idf/wifi-csi-respiration/libwifi-csi-respiration.a
+[9/14] Linking C static library esp-idf/main/libmain.a
+[10/14] Generating esp-idf/esp_system/ld/sections.ld
+NOTE: 
+/home/kang/.espressif/v6.0.3/esp-idf/components/bt/host/nimble/Kconfig.in:1453: 
+BT_NIMBLE_MESH_PROVISIONER: 'default 0' is not a valid bool value (only 'y' and 
+'n' are allowed). Value is treated as 'n'.
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs/Kconfig:230: 
+FATFS_PRINT_LLI: 'default 0' is not a valid bool value (only 'y' and 'n' are 
+allowed). Value is treated as 'n'.
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs/Kconfig:235: 
+FATFS_PRINT_FLOAT: 'default 0' is not a valid bool value (only 'y' and 'n' are 
+allowed). Value is treated as 'n'.
+[11/14] Linking CXX executable csi-rx.elf; Checking ioctl definition overlaps
+[12/14] Generating binary image from built executable
+esptool v5.4.0
+Creating ESP32-C5 image...
+Merged 3 ELF sections.
+Successfully created ESP32-C5 image.
+Generated /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/csi-rx.bin
+[13/14] cd /home/kang/.workspace/wifi-csi-respiration/csi-rx/build && /home/kang/.espressif/tools/python/v6.0.3/venv/bin/python /home/kang/.espressif/v6.0.3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/partition_table/partition-table.bin /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/csi-rx.bin
+csi-rx.bin binary size 0xe04b0 bytes. Smallest app partition is 0x100000 bytes. 0x1fb50 bytes (12%) free.
+
+Project build complete. To flash, run:
+ idf.py flash
+or
+ idf.py -p PORT flash
+or
+ python -m esptool --chip esp32c5 -b 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-size 2MB --flash-freq 80m 0x2000 csi-rx/build/bootloader/bootloader.bin 0x8000 csi-rx/build/partition_table/partition-table.bin 0x10000 csi-rx/build/csi-rx.bin
+or from the "/home/kang/.workspace/wifi-csi-respiration/csi-rx/build" directory
+ python -m esptool --chip esp32c5 -b 460800 --before default-reset --after hard-reset write-flash "@flash_args"

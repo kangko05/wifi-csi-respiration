@@ -1,0 +1,31 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/kang/.workspace/wifi-csi-respiration/build
+[1/4] Building C object CMakeFiles/csi_resp_main.dir/src/main.c.o
+[2/4] Building C object CMakeFiles/csi_resp.dir/src/phase.c.o
+[3/4] Linking C static library libcsi_resp.a
+[4/4] Linking C executable csi_resp_main
+20260916T054244_118183_c80cd924 | 보류(진단값) | SC 7 | PSD 41.31 / ACF 10.92 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T054701_999498_a9836fd9 | 보류(진단값) | SC 54 | PSD 12.16 / ACF 12.81 bpm | PSD·ACF 불일치
+20260916T055024_826155_489fce0f | 보류(진단값) | SC 63 | PSD 14.72 / ACF 14.94 bpm | PSD 집중도 부족
+20260916T055235_581953_89412768 | 보류(진단값) | SC 76 | PSD 13.48 / ACF 14.34 bpm | PSD 집중도 부족, PSD·ACF 불일치
+20260916T055449_958888_e2d24064 | 보류(진단값) | SC 76 | PSD 17.80 / ACF 17.18 bpm | PSD 집중도 부족, PSD·ACF 불일치
+20260916T055706_096252_5f38716a | 보류(진단값) | SC 28 | PSD 15.60 / ACF 15.97 bpm | PSD 집중도 부족
+20260916T055913_253059_08098c26 | 보류(진단값) | SC 3 | PSD 17.80 / ACF 17.13 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T060200_034260_9dd9fd80 | 보류(진단값) | SC 114 | PSD 19.70 / ACF 16.24 bpm | PSD 집중도 부족, PSD·ACF 불일치
+20260916T060415_036934_0bd26482 | 보류(진단값) | SC 114 | PSD 16.48 / ACF 15.92 bpm | PSD 집중도 부족, PSD·ACF 불일치
+20260916T060628_185239_4c4d38b6 | 보류(진단값) | SC 115 | PSD 16.70 / ACF 18.27 bpm | PSD 집중도 부족, PSD·ACF 불일치
+20260916T060852_507440_8a5360c8 | 보류(진단값) | SC 50 | PSD 18.46 / ACF 18.21 bpm | PSD 집중도 부족
+20260916T061107_886644_2352edd0 | 보류(진단값) | SC 115 | PSD 16.19 / ACF 16.61 bpm | PSD 집중도 부족, 자기상관 약함
+20260916T061327_440770_fcb222ce | 보류(진단값) | SC 50 | PSD 17.07 / ACF 17.28 bpm | PSD 집중도 부족
+20260916T061618_612294_53ead452 | 보류(진단값) | SC 92 | PSD 14.28 / ACF 7.28 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T061836_038634_fdb6204f | 보류(진단값) | SC 74 | PSD 16.77 / ACF 17.40 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T062052_361925_cec1170d | 보류(진단값) | SC 56 | PSD 3.00 / ACF 20.33 bpm | 탐색 대역 경계, PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T062407_816705_017a033d | 보류(진단값) | SC 83 | PSD 15.75 / ACF 15.00 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T062632_711148_812d036c | 보류(진단값) | SC 24 | PSD 38.89 / ACF 4.85 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T062856_614494_168e3beb | 보류(진단값) | SC 114 | PSD 14.21 / ACF 4.76 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T063134_772384_aca6e871 | 보류(진단값) | SC 26 | PSD 4.25 / ACF 34.65 bpm | PSD 집중도 부족, 자기상관 약함, PSD·ACF 불일치
+20260916T063413_795063_e446ed62 | 보류(진단값) | SC 111 | PSD 7.03 / ACF 39.37 bpm | PSD 집중도 부족, PSD·ACF 불일치
+
+총 21개 | 채택 후보 0개 | 보류 21개 | 오류 0개
+결과 저장: /home/kang/.workspace/wifi-csi-respiration/outputs/linux-validation/20260921T023240_594453Z/amplitude

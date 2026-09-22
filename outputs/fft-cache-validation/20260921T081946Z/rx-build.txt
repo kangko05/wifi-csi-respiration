@@ -1,0 +1,49 @@
+Executing action: all (aliases: build)
+Running ninja in directory /home/kang/.workspace/wifi-csi-respiration/csi-rx/build
+Executing "ninja all"...
+[1/19] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/csi_output.c.obj
+[2/19] Performing build step for 'bootloader'
+[1/1] cd /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/bootloader && /home/kang/.espressif/tools/python/v6.0.3/venv/bin/python /home/kang/.espressif/v6.0.3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x2000 /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/bootloader/bootloader.bin
+Bootloader binary size 0x57c0 bytes. 0x840 bytes (9%) free.
+[3/19] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/queue.c.obj
+[4/19] Building C object esp-idf/wifi-csi-respiration/CMakeFiles/__idf_wifi-csi-respiration.dir/src/csi_utils.c.obj
+[5/19] No install step for 'bootloader'
+[6/19] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/csi-rx.c.obj
+[7/19] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/csi_capture.c.obj
+[8/19] Completed 'bootloader'
+[9/19] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/init_wifi.c.obj
+[10/19] Building C object esp-idf/wifi-csi-respiration/CMakeFiles/__idf_wifi-csi-respiration.dir/src/filters.c.obj
+[11/19] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/csi_process.c.obj
+[12/19] Building C object esp-idf/wifi-csi-respiration/CMakeFiles/__idf_wifi-csi-respiration.dir/src/amplitude.c.obj
+[13/19] Building C object esp-idf/wifi-csi-respiration/CMakeFiles/__idf_wifi-csi-respiration.dir/src/phase.c.obj
+[14/19] Linking C static library esp-idf/wifi-csi-respiration/libwifi-csi-respiration.a
+[15/19] Linking C static library esp-idf/main/libmain.a
+[16/19] Generating esp-idf/esp_system/ld/sections.ld
+NOTE: 
+/home/kang/.espressif/v6.0.3/esp-idf/components/bt/host/nimble/Kconfig.in:1453: 
+BT_NIMBLE_MESH_PROVISIONER: 'default 0' is not a valid bool value (only 'y' and 
+'n' are allowed). Value is treated as 'n'.
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs/Kconfig:230: 
+FATFS_PRINT_LLI: 'default 0' is not a valid bool value (only 'y' and 'n' are 
+allowed). Value is treated as 'n'.
+NOTE: /home/kang/.espressif/v6.0.3/esp-idf/components/fatfs/Kconfig:235: 
+FATFS_PRINT_FLOAT: 'default 0' is not a valid bool value (only 'y' and 'n' are 
+allowed). Value is treated as 'n'.
+[17/19] Linking CXX executable csi-rx.elf; Checking ioctl definition overlaps
+[18/19] Generating binary image from built executable
+esptool v5.4.0
+Creating ESP32-C5 image...
+Merged 3 ELF sections.
+Successfully created ESP32-C5 image.
+Generated /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/csi-rx.bin
+[19/19] cd /home/kang/.workspace/wifi-csi-respiration/csi-rx/build && /home/kang/.espressif/tools/python/v6.0.3/venv/bin/python /home/kang/.espressif/v6.0.3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/partition_table/partition-table.bin /home/kang/.workspace/wifi-csi-respiration/csi-rx/build/csi-rx.bin
+csi-rx.bin binary size 0xe0eb0 bytes. Smallest app partition is 0x100000 bytes. 0x1f150 bytes (12%) free.
+
+Project build complete. To flash, run:
+ idf.py flash
+or
+ idf.py -p PORT flash
+or
+ python -m esptool --chip esp32c5 -b 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-size 2MB --flash-freq 80m 0x2000 csi-rx/build/bootloader/bootloader.bin 0x8000 csi-rx/build/partition_table/partition-table.bin 0x10000 csi-rx/build/csi-rx.bin
+or from the "/home/kang/.workspace/wifi-csi-respiration/csi-rx/build" directory
+ python -m esptool --chip esp32c5 -b 460800 --before default-reset --after hard-reset write-flash "@flash_args"
