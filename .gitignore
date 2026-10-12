@@ -12,6 +12,7 @@ htmlcov/
 # Captures and generated reports (preserve/back up separately)
 data/
 outputs/
+docs/
 
 # Test scratch space (kept inside the workspace)
 .tmp-tests/
@@ -37,3 +38,9 @@ csi-rx/build
 csi-rx/compile_commands.json
 csi-rx/sdkconfig.old
 csi-rx/managed_components/
+
+csi-main/.cache
+csi-main/build
+csi-main/compile_commands.json
+csi-main/sdkconfig.old
+csi-main/managed_components/

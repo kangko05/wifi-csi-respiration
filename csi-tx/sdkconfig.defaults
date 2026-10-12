@@ -1,0 +1,2 @@
+# 10 ms send period must be representable in scheduler ticks.
+CONFIG_FREERTOS_HZ=1000
