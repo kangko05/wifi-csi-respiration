@@ -1,8 +1,0 @@
-# Same console as the receiver that recorded the sessions: UART0 at 921600.
-# The baud rate is only configurable with the custom UART console.
-CONFIG_ESP_CONSOLE_UART_CUSTOM=y
-CONFIG_ESP_CONSOLE_UART_CUSTOM_NUM_0=y
-CONFIG_ESP_CONSOLE_UART_BAUDRATE=921600
-CONFIG_ESP_WIFI_CSI_ENABLED=y
-# ADR 0001: internal SRAM only.
-# CONFIG_SPIRAM is not set

@@ -1,4 +1,0 @@
-dependencies:
-  idf: '>=4.4.1'
-  # Reports AGC/FFT gain per packet and can force a fixed RX gain (ticket 08).
-  espressif/esp_csi_gain_ctrl: ^0.1.5
