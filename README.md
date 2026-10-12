@@ -9,11 +9,12 @@ python -m venv .venv
 
 ## 보드
 
-- 방마다 케이스 하나(송신기 csi-tx + 수신기 csi-rx), 방 밖에 메인 보드(csi-main). 모두 ESP32-C5.
-- 송신기·수신기는 전원만 있으면 된다. **메인 보드의 UART USB(CP2102N, `/dev/ttyUSB*`, 921600)** 를 PC에 꽂는다.
-  모든 방의 패킷이 이 포트로 나온다. 보드의 다른 USB 포트(`/dev/ttyACM*`)는 부팅 로그만 나온다.
-- 펌웨어는 `origin/csi-tx` 브랜치(`csi-tx/`, `csi-rx/`, `csi-main/`). 보드에는 이미 올라가 있다. 다시 올리려면
-  그 브랜치에서 ESP-IDF v6.0.3으로 `idf.py -p <포트> flash` (방 번호는 `-DCSI_LINK_ID=<n>`).
+| 항목        | 값                                                                           |
+| ----------- | ---------------------------------------------------------------------------- |
+| 대역 / 채널 | 5 GHz, 채널 36 (모든 링크 같음)                                              |
+| 대역폭      | HT20 (`LINK_WIFI_BANDWIDTH_MHZ 20`) → CSI 57빈                               |
+| 전송        | ESP-NOW 유니캐스트, 802.11n MCS0 long GI, 10 ms 주기(약 100패킷/s)           |
+| 송신 전력   | 2 dBm (`TX_MAX_TX_POWER_QUARTER_DBM 8`, 케이스 안 직접 결합을 줄이려고 조정) |
 
 ## 사용
 
