@@ -44,3 +44,6 @@ csi-main/build
 csi-main/compile_commands.json
 csi-main/sdkconfig.old
 csi-main/managed_components/
+
+# Collector output (tools/collect.py)
+recordings/
