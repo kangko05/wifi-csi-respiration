@@ -30,8 +30,13 @@ typedef struct {
     int8_t forced_fft;        /**< receiver: FFT gain forced with gain=force;
                                    (0, 0) means not set, measure at boot */
     uint8_t relay;            /**< receiver: 1 also sends each CSI record as an
-                                   ARI2 packet to the main unit over ESP-NOW */
+                                   ARI2 packet to the main unit over ESP-NOW,
+                                   LINK_RELAY_AP as UDP through the AP */
 } link_config_t;
+
+/* relay value: join the main module's AP and send each ARI2 packet as one UDP
+ * datagram to CONFIG_LINK_AP_HOST:CONFIG_LINK_AP_PORT. ch must be the AP's. */
+#define LINK_RELAY_AP 3
 
 void link_config_defaults(link_config_t *config);
 

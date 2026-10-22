@@ -7,7 +7,7 @@
  *
  *   get                 print the stored config
  *   set <key> <value>   change one field (role link ch bw period power rate
- *                       gain lltf agc fft relay)
+ *                       gain lltf agc fft relay; relay 3 = UDP via the AP)
  *   apply               save to NVS and restart with the new config
  *   defaults            reset the stored config to defaults (needs apply)
  *   status              print counters now (also printed every second)

@@ -1216,6 +1216,15 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# caselink AP relay (relay=3)
+#
+# default:
+CONFIG_LINK_AP_HOST="192.168.4.1"
+# default:
+CONFIG_LINK_AP_PORT=3334
+# end of caselink AP relay (relay=3)
+
+#
 # Compiler options
 #
 # default:

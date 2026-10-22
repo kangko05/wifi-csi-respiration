@@ -329,8 +329,9 @@ esp_err_t link_config_set(link_config_t *config, const char *key,
     }
 
     if (strcmp(key, "relay") == 0) {
-        /* 0 off, 1 unicast to the main unit, 2 broadcast (no ACK needed). */
-        if (!parse_long(value, 0, 2, &number)) {
+        /* 0 off, 1 unicast to the main unit, 2 broadcast (no ACK needed),
+         * 3 UDP through the main module's AP (Kconfig.projbuild). */
+        if (!parse_long(value, 0, LINK_RELAY_AP, &number)) {
             return ESP_ERR_INVALID_ARG;
         }
         config->relay = (uint8_t)number;

@@ -10,12 +10,24 @@
 #include "esp_mac.h"
 #include "esp_netif.h"
 #include "esp_now.h"
+#include "esp_timer.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "lwip/inet.h"
+#include "lwip/sockets.h"
 
 #include "ari2_packet.h"
+/* relay=3 credentials, kept out of git:
+ *   #define LINK_AP_SSID "..."
+ *   #define LINK_AP_PASSWORD "..." */
+#if __has_include("ap_secret.h")
+#include "ap_secret.h"
+#else
+#define LINK_AP_SSID ""
+#define LINK_AP_PASSWORD ""
+#endif
 #include "frame_out.h"
 
 #define CSI_QUEUE_DEPTH 32
@@ -49,6 +61,10 @@
  * starts with seq. csi-main reads the same offset (MAIN_SEQ_PAYLOAD_OFFSET).
  */
 #define RELAY_SEQ_PAYLOAD_OFFSET 15
+
+/* relay=3: wait between reconnect attempts; each one scans and takes the
+ * radio off the case link for a moment. */
+#define AP_RECONNECT_MS 1000
 
 static const char *TAG = "radio";
 
@@ -84,6 +100,10 @@ static atomic_uint s_tx_sent;
 static atomic_uint s_tx_failed;
 static atomic_uint s_relay_sent;
 static atomic_uint s_relay_failed;
+static atomic_bool s_ap_ready;
+static int s_ap_socket = -1;
+static struct sockaddr_in s_ap_address;
+static esp_timer_handle_t s_ap_reconnect_timer;
 static atomic_bool s_gain_forced;
 static atomic_bool s_baseline_ready;
 static atomic_int s_baseline_agc;
@@ -108,6 +128,10 @@ static void make_transmitter_mac(uint8_t link_id, uint8_t mac[ESP_NOW_ETH_ALEN])
 static void wifi_start(const link_config_t *config) {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    if (config->relay == LINK_RELAY_AP) {
+        esp_netif_create_default_wifi_sta();
+    }
 
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&init_config));
@@ -412,6 +436,18 @@ static void relay_send(const csi_record_t *record) {
     /* relay=2 broadcasts: a unicast frame needs the main unit's ACK, which a
      * receiver with its gain forced low for the few-cm case link may not
      * decode, so every send waits for retries and the queue fills. */
+    if (s_config.relay == LINK_RELAY_AP) {
+        if (!atomic_load(&s_ap_ready)) {
+            atomic_fetch_add(&s_relay_failed, 1);
+        } else if (sendto(s_ap_socket, packet, sizeof(packet), 0,
+                          (const struct sockaddr *)&s_ap_address, sizeof(s_ap_address)) < 0) {
+            atomic_fetch_add(&s_relay_failed, 1);
+        } else {
+            atomic_fetch_add(&s_relay_sent, 1);
+        }
+        return;
+    }
+
     const uint8_t *destination = s_config.relay == 2 ? s_broadcast_mac : s_main_mac;
 
     if (esp_now_send(destination, packet, sizeof(packet)) == ESP_OK) {
@@ -436,6 +472,75 @@ static void csi_writer_task(void *argument) {
             relay_send(&record);
         }
     }
+}
+
+/* ---------------------------------------------------------------- AP relay */
+
+static void ap_reconnect(void *argument) {
+    (void)argument;
+
+    esp_wifi_connect();
+}
+
+static void ap_event_handler(void *argument, esp_event_base_t base, int32_t id, void *data) {
+    (void)argument;
+    (void)data;
+
+    if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
+        atomic_store(&s_ap_ready, false);
+        esp_timer_stop(s_ap_reconnect_timer);
+        esp_timer_start_once(s_ap_reconnect_timer, (uint64_t)AP_RECONNECT_MS * 1000);
+    } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
+        atomic_store(&s_ap_ready, true);
+    }
+}
+
+/* The station follows the AP's channel once connected, so the case link only
+ * works when ch is the AP's channel. */
+static void ap_relay_start(void) {
+    if (LINK_AP_SSID[0] == '\0') {
+        ESP_LOGE(TAG, "relay=3 without main/ap_secret.h: no AP to join");
+        return;
+    }
+
+    s_ap_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+    if (s_ap_socket < 0) {
+        ESP_LOGE(TAG, "udp socket failed");
+        abort();
+    }
+
+    s_ap_address.sin_family = AF_INET;
+    s_ap_address.sin_port = htons(CONFIG_LINK_AP_PORT);
+
+    if (inet_pton(AF_INET, CONFIG_LINK_AP_HOST, &s_ap_address.sin_addr) != 1) {
+        ESP_LOGE(TAG, "bad CONFIG_LINK_AP_HOST %s", CONFIG_LINK_AP_HOST);
+        abort();
+    }
+
+    const esp_timer_create_args_t timer_args = {
+        .callback = ap_reconnect,
+        .name = "ap_reconnect",
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &s_ap_reconnect_timer));
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED,
+                                               ap_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, ap_event_handler,
+                                               NULL));
+
+    wifi_config_t wifi_config = {0};
+    strlcpy((char *)wifi_config.sta.ssid, LINK_AP_SSID, sizeof(wifi_config.sta.ssid));
+    strlcpy((char *)wifi_config.sta.password, LINK_AP_PASSWORD,
+            sizeof(wifi_config.sta.password));
+    wifi_config.sta.channel = s_config.channel;
+    wifi_config.sta.scan_method = WIFI_FAST_SCAN;
+    wifi_config.sta.threshold.authmode =
+        LINK_AP_PASSWORD[0] != '\0' ? WIFI_AUTH_WPA2_PSK : WIFI_AUTH_OPEN;
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_connect());
+    ESP_LOGI(TAG, "ap relay: ssid=%s -> %s:%d", LINK_AP_SSID, CONFIG_LINK_AP_HOST,
+             CONFIG_LINK_AP_PORT);
 }
 
 /* ESP-NOW is set up after esp_wifi_start and before promiscuous mode and
@@ -476,7 +581,9 @@ static void receiver_start(void) {
 
     xTaskCreate(csi_writer_task, "csi_out", 4096, NULL, 9, NULL);
 
-    if (s_config.relay) {
+    if (s_config.relay == LINK_RELAY_AP) {
+        ap_relay_start();
+    } else if (s_config.relay) {
         relay_start();
     }
 
