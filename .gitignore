@@ -47,3 +47,12 @@ csi-main/managed_components/
 
 # Collector output (tools/collect.py)
 recordings/
+
+# ESP-IDF firmware under firmware/
+firmware/*/build/
+firmware/*/managed_components/
+firmware/*/sdkconfig.old
+firmware/*/.cache/
+
+# Saved empty-room baselines
+baselines/
