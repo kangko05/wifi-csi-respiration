@@ -98,8 +98,10 @@ static TaskHandle_t s_processing_task;
 
 static const uint8_t s_main_mac[ESP_NOW_ETH_ALEN] = RX_MAIN_MAC;
 
-/* Broadcast destination (RX_ARI2_SEND_BROADCAST): already an ESP-NOW peer, see espnow_init. */
-static const uint8_t s_broadcast_mac[ESP_NOW_ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+/* Broadcast destination (RX_ARI2_SEND_BROADCAST): already an ESP-NOW peer, see
+ * espnow_init. */
+static const uint8_t s_broadcast_mac[ESP_NOW_ETH_ALEN] = {0xff, 0xff, 0xff,
+                                                          0xff, 0xff, 0xff};
 
 #endif
 
@@ -126,11 +128,13 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
         return;
     }
 
-    if (info->payload == NULL || info->payload_len < RX_SEQ_PAYLOAD_OFFSET + sizeof(uint32_t)) {
+    if (info->payload == NULL ||
+        info->payload_len < RX_SEQ_PAYLOAD_OFFSET + sizeof(uint32_t)) {
         return;
     }
 
-    /* Static: too large for the WiFi task stack, and only this callback uses it. */
+    /* Static: too large for the WiFi task stack, and only this callback uses
+     * it. */
     static rx_record_t record;
     static uint32_t packet_count;
     const wifi_pkt_rx_ctrl_t *rx_ctrl = &info->rx_ctrl;
@@ -145,19 +149,22 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
         esp_csi_gain_ctrl_record_rx_gain(agc_gain, fft_gain);
     } else {
         if (packet_count == GAIN_BASELINE_PACKETS) {
-            s_baseline_err = esp_csi_gain_ctrl_get_rx_gain_baseline(&s_baseline_agc, &s_baseline_fft);
+            s_baseline_err = esp_csi_gain_ctrl_get_rx_gain_baseline(
+                &s_baseline_agc, &s_baseline_fft);
             s_force_err = ESP_OK;
 
 #if RX_FORCE_RX_GAIN
             if (s_baseline_err == ESP_OK) {
-                s_force_err = esp_csi_gain_ctrl_set_rx_force_gain(s_baseline_agc, s_baseline_fft);
+                s_force_err = esp_csi_gain_ctrl_set_rx_force_gain(
+                    s_baseline_agc, s_baseline_fft);
             }
 #endif
 
             atomic_store(&s_gain_report_ready, true);
         }
 
-        esp_csi_gain_ctrl_get_gain_compensation(&compensate_gain, agc_gain, fft_gain);
+        esp_csi_gain_ctrl_get_gain_compensation(&compensate_gain, agc_gain,
+                                                fft_gain);
     }
 
     packet_count++;
@@ -168,7 +175,8 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
         len = RX_CSI_MAX_BYTES;
     }
 
-    memcpy(&record.seq, info->payload + RX_SEQ_PAYLOAD_OFFSET, sizeof(record.seq));
+    memcpy(&record.seq, info->payload + RX_SEQ_PAYLOAD_OFFSET,
+           sizeof(record.seq));
     record.hardware_timestamp_us = rx_ctrl->timestamp;
     record.queued_at_us = esp_timer_get_time();
     record.compensate_gain = compensate_gain;
@@ -222,8 +230,10 @@ static int discard_log_output(const char *format, va_list arguments) {
  * prints; the PC resynchronises on the "ARI2" magic.
  */
 static void ari2_output_start(void) {
-    ESP_LOGI(TAG, "ari2 stream: room=%d node=%d bins=%d packet=%d bytes; logging off now",
-             RX_ARI2_ROOM, RX_ARI2_NODE, ARI2_HT20_BINS, ARI2_HT20_PACKET_BYTES);
+    ESP_LOGI(
+        TAG,
+        "ari2 stream: room=%d node=%d bins=%d packet=%d bytes; logging off now",
+        RX_ARI2_ROOM, RX_ARI2_NODE, ARI2_HT20_BINS, ARI2_HT20_PACKET_BYTES);
     fflush(stdout);
 
     /* The console writes above return once the bytes are in the 128-byte
@@ -247,8 +257,9 @@ static bool ari2_build_packet(const rx_record_t *record, uint32_t boot_id,
     }
 
     int8_t iq[ARI2_HT20_IQ_BYTES];
-    bool mapped = ari2_map_ht20(record->csi, record->len, record->first_word_invalid != 0,
-                                RX_ARI2_SOURCE_ORDER, iq);
+    bool mapped =
+        ari2_map_ht20(record->csi, record->len, record->first_word_invalid != 0,
+                      RX_ARI2_SOURCE_ORDER, iq);
 
     if (!mapped) {
         return false;
@@ -328,9 +339,9 @@ static void base64_encode(const int8_t *in, size_t n, char *out) {
     size_t out_index = 0;
 
     while (in_index + 3 <= n) {
-        uint32_t value = ((uint32_t)(uint8_t)in[in_index] << 16)
-                         | ((uint32_t)(uint8_t)in[in_index + 1] << 8)
-                         | (uint32_t)(uint8_t)in[in_index + 2];
+        uint32_t value = ((uint32_t)(uint8_t)in[in_index] << 16) |
+                         ((uint32_t)(uint8_t)in[in_index + 1] << 8) |
+                         (uint32_t)(uint8_t)in[in_index + 2];
 
         out[out_index++] = BASE64_ALPHABET[(value >> 18) & 0x3f];
         out[out_index++] = BASE64_ALPHABET[(value >> 12) & 0x3f];
@@ -349,7 +360,8 @@ static void base64_encode(const int8_t *in, size_t n, char *out) {
 
         out[out_index++] = BASE64_ALPHABET[(value >> 18) & 0x3f];
         out[out_index++] = BASE64_ALPHABET[(value >> 12) & 0x3f];
-        out[out_index++] = two_bytes ? BASE64_ALPHABET[(value >> 6) & 0x3f] : '=';
+        out[out_index++] =
+            two_bytes ? BASE64_ALPHABET[(value >> 6) & 0x3f] : '=';
         out[out_index++] = '=';
     }
 
@@ -362,10 +374,12 @@ static void print_raw_record(const rx_record_t *record, uint32_t drops) {
 
     base64_encode(record->csi, record->len, encoded);
 
-    printf("CSI_DATA,%" PRIu32 ",%d,%d,%d,%u,%u,%" PRIu32 ",%u,%u,%u,%u,%.6f,%" PRIu32 ",%s\n",
-           record->seq, record->rssi, record->noise_floor, record->fft_gain, record->agc_gain,
-           record->channel, record->hardware_timestamp_us, record->sig_len, record->rx_format,
-           record->len, record->first_word_invalid, (double)record->compensate_gain, drops,
+    printf("CSI_DATA,%" PRIu32 ",%d,%d,%d,%u,%u,%" PRIu32
+           ",%u,%u,%u,%u,%.6f,%" PRIu32 ",%s\n",
+           record->seq, record->rssi, record->noise_floor, record->fft_gain,
+           record->agc_gain, record->channel, record->hardware_timestamp_us,
+           record->sig_len, record->rx_format, record->len,
+           record->first_word_invalid, (double)record->compensate_gain, drops,
            encoded);
 }
 
@@ -434,7 +448,8 @@ typedef struct {
 static int64_t rx_clock_update(rx_clock_t *clock, const rx_record_t *record) {
     uint32_t timestamp = record->hardware_timestamp_us;
 
-    if (clock->started && timestamp < clock->previous && clock->previous - timestamp > 0x80000000u) {
+    if (clock->started && timestamp < clock->previous &&
+        clock->previous - timestamp > 0x80000000u) {
         clock->wraps++;
     }
 
@@ -451,7 +466,8 @@ static int64_t rx_clock_update(rx_clock_t *clock, const rx_record_t *record) {
 /* Conservative estimate: elapsed time since the last packet, minus a margin.
  * Never earlier than the last record (the core ignores such times anyway). */
 static int64_t rx_clock_now(const rx_clock_t *clock) {
-    int64_t elapsed_us = esp_timer_get_time() - clock->last_queued_at_us - RX_IDLE_CLOCK_MARGIN_US;
+    int64_t elapsed_us = esp_timer_get_time() - clock->last_queued_at_us -
+                         RX_IDLE_CLOCK_MARGIN_US;
 
     if (elapsed_us < 0) {
         elapsed_us = 0;
@@ -473,7 +489,8 @@ static void advance_until_quiet(occ_core_t *core, int64_t now_us) {
 
 /* Feeds one record to the core in the PC replay order (advance_time, push,
  * poll). Returns false when the core rejects it. */
-static bool run_core(occ_core_t *core, const rx_record_t *record, int64_t rx_time_us) {
+static bool run_core(occ_core_t *core, const rx_record_t *record,
+                     int64_t rx_time_us) {
     advance_until_quiet(core, rx_time_us);
 
     occ_csi_record_t core_record = {
@@ -502,23 +519,22 @@ static bool run_core(occ_core_t *core, const rx_record_t *record, int64_t rx_tim
 
 #endif /* RX_RUN_OCCUPANCY_CORE */
 
-static void print_health(const rx_clock_t *clock, uint32_t processed, uint32_t rejected) {
+static void print_health(const rx_clock_t *clock, uint32_t processed,
+                         uint32_t rejected) {
     int64_t last_packet_age_ms = -1;
 
     if (clock->started) {
-        last_packet_age_ms = (esp_timer_get_time() - clock->last_queued_at_us) / 1000;
+        last_packet_age_ms =
+            (esp_timer_get_time() - clock->last_queued_at_us) / 1000;
     }
 
-    printf("OCC_HEALTH,%d,%lld,%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32
-           ",%" PRIu32 ",%" PRIu32 ",%u,%lld\n",
-           RX_LINK_ID,
-           (long long)(esp_timer_get_time() / 1000),
+    printf("OCC_HEALTH,%d,%lld,%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32
+           ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%u,%lld\n",
+           RX_LINK_ID, (long long)(esp_timer_get_time() / 1000),
            (uint32_t)esp_get_free_heap_size(),
            (uint32_t)esp_get_minimum_free_heap_size(),
            (uint32_t)uxTaskGetStackHighWaterMark(s_processing_task),
-           (uint32_t)atomic_load(&s_callback_records),
-           processed,
-           rejected,
+           (uint32_t)atomic_load(&s_callback_records), processed, rejected,
            (uint32_t)atomic_load(&s_queue_drops),
            (unsigned)uxQueueMessagesWaiting(s_queue),
            (long long)last_packet_age_ms);
@@ -535,8 +551,9 @@ static void print_gain_report_once(void) {
     }
 
     printf("OCC_GAIN,%d,%d,%u,%d,%s,%s,%d\n", RX_LINK_ID, RX_FORCE_RX_GAIN,
-           (unsigned)s_baseline_agc, (int)s_baseline_fft, esp_err_to_name(s_baseline_err),
-           esp_err_to_name(s_force_err), (int)esp_csi_gain_ctrl_get_gain_status());
+           (unsigned)s_baseline_agc, (int)s_baseline_fft,
+           esp_err_to_name(s_baseline_err), esp_err_to_name(s_force_err),
+           (int)esp_csi_gain_ctrl_get_gain_status());
     printed = true;
 }
 
@@ -563,15 +580,18 @@ static void processing_task(void *argument) {
     rx_clock_t clock = {0};
     uint32_t processed = 0;
     uint32_t rejected = 0;
-    int64_t next_health_us = esp_timer_get_time() + RX_HEALTH_INTERVAL_S * 1000000LL;
+    int64_t next_health_us =
+        esp_timer_get_time() + RX_HEALTH_INTERVAL_S * 1000000LL;
 
 #if RX_RAW_CSI_OUTPUT
-    printf("type,seq,rssi,noise_floor,fft_gain,agc_gain,channel,local_timestamp,sig_len,"
+    printf("type,seq,rssi,noise_floor,fft_gain,agc_gain,channel,local_"
+           "timestamp,sig_len,"
            "rx_format,len,first_word,compensate_gain,dropped,data\n");
 #endif
 
     for (;;) {
-        if (xQueueReceive(s_queue, &record, pdMS_TO_TICKS(RX_IDLE_CHECK_MS)) == pdTRUE) {
+        if (xQueueReceive(s_queue, &record, pdMS_TO_TICKS(RX_IDLE_CHECK_MS)) ==
+            pdTRUE) {
 #if RX_RAW_CSI_OUTPUT
             print_raw_record(&record, (uint32_t)atomic_load(&s_queue_drops));
 #endif
@@ -602,7 +622,8 @@ static void processing_task(void *argument) {
 
 #if RX_REPORT_TO_MAIN
             if (s_report_errors > 0) {
-                ESP_LOGW(TAG, "report_to_main errors=%" PRIu32, s_report_errors);
+                ESP_LOGW(TAG, "report_to_main errors=%" PRIu32,
+                         s_report_errors);
             }
 #endif
         }
@@ -616,7 +637,8 @@ static void processing_task(void *argument) {
 static void nvs_init(void) {
     esp_err_t err = nvs_flash_init();
 
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
+        err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         RX_CHECK(nvs_flash_erase());
         err = nvs_flash_init();
     }
@@ -703,8 +725,9 @@ static void csi_init(void) {
         abort();
     }
 
-    BaseType_t created = xTaskCreate(processing_task, "occ_proc", RX_TASK_STACK_BYTES, NULL,
-                                     RX_TASK_PRIORITY, &s_processing_task);
+    BaseType_t created =
+        xTaskCreate(processing_task, "occ_proc", RX_TASK_STACK_BYTES, NULL,
+                    RX_TASK_PRIORITY, &s_processing_task);
 
     if (created != pdPASS) {
         ESP_LOGE(TAG, "xTaskCreate(occ_proc) failed");
@@ -751,20 +774,23 @@ void app_main(void) {
     RX_CHECK(esp_wifi_get_bandwidths(WIFI_IF_STA, &bandwidths));
 
     ESP_LOGI(TAG, "================ CSI RECV ================");
-    ESP_LOGI(TAG, "rx_config,mac=" MACSTR ",transmitter=" MACSTR ",link=%d,raw=%d,force_gain=%d,core_gain=%d",
-             MAC2STR(own_mac), MAC2STR(s_transmitter_mac), RX_LINK_ID, RX_RAW_CSI_OUTPUT,
-             RX_FORCE_RX_GAIN, (int)RX_CORE_GAIN_MODE);
-    ESP_LOGI(TAG, "rx_config,channel=%u,second=%d,bw5g=%d", primary_channel, (int)second_channel,
-             (int)bandwidths.ghz_5g);
+    ESP_LOGI(TAG,
+             "rx_config,mac=" MACSTR ",transmitter=" MACSTR
+             ",link=%d,raw=%d,force_gain=%d,core_gain=%d",
+             MAC2STR(own_mac), MAC2STR(s_transmitter_mac), RX_LINK_ID,
+             RX_RAW_CSI_OUTPUT, RX_FORCE_RX_GAIN, (int)RX_CORE_GAIN_MODE);
+    ESP_LOGI(TAG, "rx_config,channel=%u,second=%d,bw5g=%d", primary_channel,
+             (int)second_channel, (int)bandwidths.ghz_5g);
 
 #if RX_REPORT_TO_MAIN
     ESP_LOGI(TAG, "rx_config,report_to_main=" MACSTR, MAC2STR(s_main_mac));
 #endif
     ESP_LOGI(TAG, "rx_config,output=%s,core=%d,bandwidth_mhz=%d",
-             RX_OUTPUT_MODE == RX_OUTPUT_ARI2 ? "ari2" : "text", RX_RUN_OCCUPANCY_CORE,
-             LINK_WIFI_BANDWIDTH_MHZ);
+             RX_OUTPUT_MODE == RX_OUTPUT_ARI2 ? "ari2" : "text",
+             RX_RUN_OCCUPANCY_CORE, LINK_WIFI_BANDWIDTH_MHZ);
     ESP_LOGI(TAG, "occ_core_t %u bytes, rx_record_t %u bytes, queue %d",
-             (unsigned)sizeof(occ_core_t), (unsigned)sizeof(rx_record_t), RX_QUEUE_LENGTH);
+             (unsigned)sizeof(occ_core_t), (unsigned)sizeof(rx_record_t),
+             RX_QUEUE_LENGTH);
 
 #if RX_OUTPUT_MODE == RX_OUTPUT_ARI2
     /* Last log line; from here on the console carries only ARI2 packets. */

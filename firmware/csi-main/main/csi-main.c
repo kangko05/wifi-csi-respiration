@@ -19,8 +19,8 @@
  *
  * Output, one message per line (docs/spec/0002-output-messages.md):
  *   OCC_STATS, OCC_EVENT   forwarded from the receivers
- *   CSI_LINK    raw record of the listened link (CSI_DATA fields after the link ID)
- *   MAIN_STATS  1 s motion statistic of one link on the main unit's path
+ *   CSI_LINK    raw record of the listened link (CSI_DATA fields after the link
+ * ID) MAIN_STATS  1 s motion statistic of one link on the main unit's path
  *               (OCC_STATS fields; eta and decision are those of the case
  *               link and are not valid for this path)
  *   MAIN_LISTEN the listened link changed
@@ -53,15 +53,24 @@
 #include "esp_rom_sys.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
+#include "lwip/sockets.h"
 #include "nvs_flash.h"
 
 #include "ari2_packet.h"
 #include "main_config.h"
 #include "occupancy_core.h"
 
+#if __has_include("../../caselink/main/ap_secret.h")
+#include "../../caselink/main/ap_secret.h"
+#else
+#define LINK_AP_SSID ""
+#define LINK_AP_PASSWORD ""
+#endif
+
 static const char *TAG = "csi-main";
 
-static const uint8_t s_tx_mac_prefix[ESP_NOW_ETH_ALEN - 1] = LINK_TX_SOURCE_MAC_PREFIX;
+static const uint8_t s_tx_mac_prefix[ESP_NOW_ETH_ALEN - 1] =
+    LINK_TX_SOURCE_MAC_PREFIX;
 
 /* Packets used per link to estimate the gain baseline for compensate_gain. */
 #define GAIN_BASELINE_PACKETS 100
@@ -145,11 +154,13 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
         return;
     }
 
-    if (info->payload == NULL || info->payload_len < MAIN_SEQ_PAYLOAD_OFFSET + sizeof(uint32_t)) {
+    if (info->payload == NULL ||
+        info->payload_len < MAIN_SEQ_PAYLOAD_OFFSET + sizeof(uint32_t)) {
         return;
     }
 
-    /* Static: too large for the WiFi task stack, and only this callback uses it. */
+    /* Static: too large for the WiFi task stack, and only this callback uses
+     * it. */
     static csi_record_t record;
     static uint32_t packet_count;
     const wifi_pkt_rx_ctrl_t *rx_ctrl = &info->rx_ctrl;
@@ -166,7 +177,8 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
         esp_csi_gain_ctrl_record_rx_gain(agc_gain, fft_gain);
         packet_count++;
     } else {
-        esp_csi_gain_ctrl_get_gain_compensation(&compensate_gain, agc_gain, fft_gain);
+        esp_csi_gain_ctrl_get_gain_compensation(&compensate_gain, agc_gain,
+                                                fft_gain);
     }
 
     uint16_t len = info->len;
@@ -175,7 +187,8 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
         len = MAIN_CSI_MAX_BYTES;
     }
 
-    memcpy(&record.seq, info->payload + MAIN_SEQ_PAYLOAD_OFFSET, sizeof(record.seq));
+    memcpy(&record.seq, info->payload + MAIN_SEQ_PAYLOAD_OFFSET,
+           sizeof(record.seq));
     record.hardware_timestamp_us = rx_ctrl->timestamp;
     record.compensate_gain = compensate_gain;
     record.rssi = rx_ctrl->rssi;
@@ -197,7 +210,8 @@ static void csi_callback(void *context, wifi_csi_info_t *info) {
     }
 }
 
-static void report_callback(const esp_now_recv_info_t *info, const uint8_t *data, int data_len) {
+static void report_callback(const esp_now_recv_info_t *info,
+                            const uint8_t *data, int data_len) {
     (void)info;
 
     if (data == NULL || data_len <= 0 || data_len > MAIN_REPORT_MAX_CHARS) {
@@ -233,9 +247,9 @@ static void base64_encode(const int8_t *in, size_t n, char *out) {
     size_t out_index = 0;
 
     while (in_index + 3 <= n) {
-        uint32_t value = ((uint32_t)(uint8_t)in[in_index] << 16)
-                         | ((uint32_t)(uint8_t)in[in_index + 1] << 8)
-                         | (uint32_t)(uint8_t)in[in_index + 2];
+        uint32_t value = ((uint32_t)(uint8_t)in[in_index] << 16) |
+                         ((uint32_t)(uint8_t)in[in_index + 1] << 8) |
+                         (uint32_t)(uint8_t)in[in_index + 2];
 
         out[out_index++] = BASE64_ALPHABET[(value >> 18) & 0x3f];
         out[out_index++] = BASE64_ALPHABET[(value >> 12) & 0x3f];
@@ -254,7 +268,8 @@ static void base64_encode(const int8_t *in, size_t n, char *out) {
 
         out[out_index++] = BASE64_ALPHABET[(value >> 18) & 0x3f];
         out[out_index++] = BASE64_ALPHABET[(value >> 12) & 0x3f];
-        out[out_index++] = two_bytes ? BASE64_ALPHABET[(value >> 6) & 0x3f] : '=';
+        out[out_index++] =
+            two_bytes ? BASE64_ALPHABET[(value >> 6) & 0x3f] : '=';
         out[out_index++] = '=';
     }
 
@@ -267,22 +282,23 @@ static void print_csi_record(const csi_record_t *record, uint32_t drops) {
 
     base64_encode(record->csi, record->len, encoded);
 
-    printf("CSI_LINK,%u,%" PRIu32 ",%d,%d,%d,%u,%u,%" PRIu32 ",%u,%u,%u,%u,%.6f,%" PRIu32 ",%s\n",
-           record->link_id, record->seq, record->rssi, record->noise_floor, record->fft_gain,
-           record->agc_gain, record->channel, record->hardware_timestamp_us, record->sig_len,
-           record->rx_format, record->len, record->first_word_invalid,
+    printf("CSI_LINK,%u,%" PRIu32 ",%d,%d,%d,%u,%u,%" PRIu32
+           ",%u,%u,%u,%u,%.6f,%" PRIu32 ",%s\n",
+           record->link_id, record->seq, record->rssi, record->noise_floor,
+           record->fft_gain, record->agc_gain, record->channel,
+           record->hardware_timestamp_us, record->sig_len, record->rx_format,
+           record->len, record->first_word_invalid,
            (double)record->compensate_gain, drops, encoded);
 }
 
 static void print_health(void) {
-    printf("MAIN_HEALTH,%lld,%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%d,%" PRIu32 ",%" PRIu32
-           ",%" PRIu32 ",%" PRIu32 "\n",
+    printf("MAIN_HEALTH,%lld,%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%d,%" PRIu32
+           ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 "\n",
            (long long)(esp_timer_get_time() / 1000),
            (uint32_t)esp_get_free_heap_size(),
            (uint32_t)esp_get_minimum_free_heap_size(),
            (uint32_t)uxTaskGetStackHighWaterMark(s_output_task),
-           atomic_load(&s_listen_link),
-           (uint32_t)atomic_load(&s_csi_records),
+           atomic_load(&s_listen_link), (uint32_t)atomic_load(&s_csi_records),
            (uint32_t)atomic_load(&s_csi_queue_drops),
            (uint32_t)atomic_load(&s_reports_received),
            (uint32_t)atomic_load(&s_report_drops));
@@ -300,8 +316,8 @@ typedef struct {
 } link_path_t;
 
 static int64_t extend_timestamp(link_path_t *path, uint32_t timestamp) {
-    if (path->clock_started && timestamp < path->previous_timestamp
-        && path->previous_timestamp - timestamp > 0x80000000u) {
+    if (path->clock_started && timestamp < path->previous_timestamp &&
+        path->previous_timestamp - timestamp > 0x80000000u) {
         path->wraps++;
     }
 
@@ -375,7 +391,8 @@ static bool parse_field(const char *text, char terminator, long *value) {
  * A line that was cut short or is otherwise malformed is rejected, so it
  * cannot count as a motion report.
  */
-static bool parse_stats(const char *line, int *link_id, uint32_t *window, int *decision) {
+static bool parse_stats(const char *line, int *link_id, uint32_t *window,
+                        int *decision) {
     static const char prefix[] = "OCC_STATS,";
 
     if (strncmp(line, prefix, sizeof(prefix) - 1) != 0) {
@@ -402,8 +419,9 @@ static bool parse_stats(const char *line, int *link_id, uint32_t *window, int *d
     long parsed_window = 0;
     long parsed_decision = 0;
 
-    if (!parse_field(link_text, ',', &parsed_link) || !parse_field(window_text, ',', &parsed_window)
-        || !parse_field(decision_text, '\0', &parsed_decision)) {
+    if (!parse_field(link_text, ',', &parsed_link) ||
+        !parse_field(window_text, ',', &parsed_window) ||
+        !parse_field(decision_text, '\0', &parsed_decision)) {
         return false;
     }
 
@@ -455,7 +473,8 @@ static void update_listen_link(link_motion_t *links, const char *line) {
 
     link->last_window = window;
 
-    if (s_listen_fixed || link->motion_run < MAIN_LISTEN_SWITCH_MOTION_SECONDS) {
+    if (s_listen_fixed ||
+        link->motion_run < MAIN_LISTEN_SWITCH_MOTION_SECONDS) {
         return;
     }
 
@@ -521,7 +540,8 @@ static void output_task(void *argument) {
         }
     }
 
-    int64_t next_health_us = esp_timer_get_time() + MAIN_HEALTH_INTERVAL_S * 1000000LL;
+    int64_t next_health_us =
+        esp_timer_get_time() + MAIN_HEALTH_INTERVAL_S * 1000000LL;
 
     print_listen_link();
 
@@ -534,9 +554,11 @@ static void output_task(void *argument) {
             update_listen_link(links, report.text);
         }
 
-        if (xQueueReceive(s_csi_queue, &record, pdMS_TO_TICKS(MAIN_IDLE_CHECK_MS)) == pdTRUE) {
+        if (xQueueReceive(s_csi_queue, &record,
+                          pdMS_TO_TICKS(MAIN_IDLE_CHECK_MS)) == pdTRUE) {
             if (record.link_id == atomic_load(&s_listen_link)) {
-                print_csi_record(&record, (uint32_t)atomic_load(&s_csi_queue_drops));
+                print_csi_record(&record,
+                                 (uint32_t)atomic_load(&s_csi_queue_drops));
             }
 
             update_path_motion(&paths[record.link_id], &record);
@@ -568,8 +590,8 @@ static QueueHandle_t s_ari2_queue;
 static atomic_uint_fast32_t s_ari2_drops;
 
 /* Receiver packets only: exactly one ARI2 HT20 packet per ESP-NOW frame. */
-static void ari2_relay_callback(const esp_now_recv_info_t *info, const uint8_t *data,
-                                int data_len) {
+static void ari2_relay_callback(const esp_now_recv_info_t *info,
+                                const uint8_t *data, int data_len) {
     (void)info;
 
     if (data == NULL || data_len != MAIN_ARI2_PACKET_BYTES) {
@@ -601,7 +623,8 @@ static int discard_log_output(const char *format, va_list arguments) {
  * the console UART carries only raw ARI2 packets, written through the UART
  * driver so no "\n" -> "\r\n" translation touches them. */
 static void ari2_output_start(void) {
-    ESP_LOGI(TAG, "ari2 relay: packet=%d bytes; logging off now", MAIN_ARI2_PACKET_BYTES);
+    ESP_LOGI(TAG, "ari2 relay: packet=%d bytes; logging off now",
+             MAIN_ARI2_PACKET_BYTES);
     fflush(stdout);
 
     vTaskDelay(pdMS_TO_TICKS(ARI2_LOG_DRAIN_MS));
@@ -613,6 +636,47 @@ static void ari2_output_start(void) {
 
     MAIN_CHECK(uart_driver_install(ARI2_UART_PORT, ARI2_UART_RX_BUFFER_BYTES,
                                    MAIN_ARI2_UART_TX_BUFFER_BYTES, 0, NULL, 0));
+}
+
+/* AP receive mode: one ARI2 HT20 packet per UDP datagram from a case
+ * receiver (caselink relay=3). The buffer is one byte longer than a packet
+ * so a longer datagram shows up as the wrong length. */
+static void ari2_udp_task(void *argument) {
+    (void)argument;
+
+    int udp_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+    if (udp_socket < 0) {
+        abort();
+    }
+
+    struct sockaddr_in address = {
+        .sin_family = AF_INET,
+        .sin_port = htons(MAIN_AP_UDP_PORT),
+        .sin_addr.s_addr = htonl(INADDR_ANY),
+    };
+
+    if (bind(udp_socket, (struct sockaddr *)&address, sizeof(address)) != 0) {
+        abort();
+    }
+
+    static uint8_t datagram[MAIN_ARI2_PACKET_BYTES + 1];
+    static ari2_packet_t packet;
+
+    for (;;) {
+        int length = recv(udp_socket, datagram, sizeof(datagram), 0);
+
+        if (length != MAIN_ARI2_PACKET_BYTES ||
+            memcmp(datagram, "ARI2", 4) != 0) {
+            continue;
+        }
+
+        memcpy(packet.bytes, datagram, MAIN_ARI2_PACKET_BYTES);
+
+        if (xQueueSend(s_ari2_queue, &packet, 0) != pdTRUE) {
+            atomic_fetch_add(&s_ari2_drops, 1);
+        }
+    }
 }
 
 static void ari2_relay_task(void *argument) {
@@ -652,7 +716,8 @@ static void main_path_csi_callback(void *context, wifi_csi_info_t *info) {
         return;
     }
 
-    if (info->payload == NULL || info->payload_len < MAIN_SEQ_PAYLOAD_OFFSET + sizeof(uint32_t)) {
+    if (info->payload == NULL ||
+        info->payload_len < MAIN_SEQ_PAYLOAD_OFFSET + sizeof(uint32_t)) {
         return;
     }
 
@@ -663,8 +728,9 @@ static void main_path_csi_callback(void *context, wifi_csi_info_t *info) {
     }
 
     int8_t iq[ARI2_HT20_IQ_BYTES];
-    bool mapped = ari2_map_ht20(info->buf, info->len, info->first_word_invalid != 0,
-                                ARI2_SOURCE_ASCENDING, iq);
+    bool mapped =
+        ari2_map_ht20(info->buf, info->len, info->first_word_invalid != 0,
+                      ARI2_SOURCE_ASCENDING, iq);
 
     if (!mapped) {
         return;
@@ -735,8 +801,9 @@ static void ari2_relay_init(void) {
         abort();
     }
 
-    BaseType_t created = xTaskCreate(ari2_relay_task, "ari2_relay", MAIN_TASK_STACK_BYTES, NULL,
-                                     MAIN_TASK_PRIORITY, NULL);
+    BaseType_t created =
+        xTaskCreate(ari2_relay_task, "ari2_relay", MAIN_TASK_STACK_BYTES, NULL,
+                    MAIN_TASK_PRIORITY, NULL);
 
     if (created != pdPASS) {
         ESP_LOGE(TAG, "xTaskCreate(ari2_relay) failed");
@@ -745,9 +812,18 @@ static void ari2_relay_init(void) {
 
     ari2_output_start();
 
-    MAIN_CHECK(esp_now_init());
-    MAIN_CHECK(esp_now_set_pmk((const uint8_t *)MAIN_ESPNOW_PMK));
-    MAIN_CHECK(esp_now_register_recv_cb(ari2_relay_callback));
+    if (MAIN_ARI2_RX_AP) {
+        created = xTaskCreate(ari2_udp_task, "ari2_udp", MAIN_TASK_STACK_BYTES,
+                              NULL, MAIN_TASK_PRIORITY, NULL);
+
+        if (created != pdPASS) {
+            abort();
+        }
+    } else {
+        MAIN_CHECK(esp_now_init());
+        MAIN_CHECK(esp_now_set_pmk((const uint8_t *)MAIN_ESPNOW_PMK));
+        MAIN_CHECK(esp_now_register_recv_cb(ari2_relay_callback));
+    }
 
     if (MAIN_ARI2_MAIN_PATH) {
         s_main_boot_id = esp_random();
@@ -760,7 +836,8 @@ static void ari2_relay_init(void) {
 static void nvs_init(void) {
     esp_err_t err = nvs_flash_init();
 
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
+        err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         MAIN_CHECK(nvs_flash_erase());
         err = nvs_flash_init();
     }
@@ -775,29 +852,68 @@ static void wifi_init(void) {
     MAIN_CHECK(esp_netif_init());
     MAIN_CHECK(esp_event_loop_create_default());
 
+    bool access_point = MAIN_WIFI_IF == WIFI_IF_AP;
+
+    if (access_point) {
+        if (LINK_AP_SSID[0] == '\0') {
+            ESP_LOGE(TAG, "AP receive mode without caselink/main/ap_secret.h");
+            abort();
+        }
+
+        esp_netif_create_default_wifi_ap();
+    }
+
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
     MAIN_CHECK(esp_wifi_init(&init_config));
 
     MAIN_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    MAIN_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+
+    /* The default country treats 149-165 as DFS, where the AP may not start;
+     * in KR they are not. */
+    MAIN_CHECK(esp_wifi_set_country_code("KR", false));
+    MAIN_CHECK(esp_wifi_set_mode(access_point ? WIFI_MODE_AP : WIFI_MODE_STA));
     MAIN_CHECK(esp_wifi_start());
 
     MAIN_CHECK(esp_wifi_set_band_mode(MAIN_WIFI_BAND_MODE));
 
+    /* The AP also needs 11a: the case receivers join with 11a|11n
+     * (caselink radio.c). */
     wifi_protocols_t protocols = {
         .ghz_2g = MAIN_WIFI_PROTOCOL_2G,
-        .ghz_5g = MAIN_WIFI_PROTOCOL_5G,
+        .ghz_5g = access_point ? (WIFI_PROTOCOL_11A | WIFI_PROTOCOL_11N)
+                               : MAIN_WIFI_PROTOCOL_5G,
     };
-    MAIN_CHECK(esp_wifi_set_protocols(WIFI_IF_STA, &protocols));
+    MAIN_CHECK(esp_wifi_set_protocols(MAIN_WIFI_IF, &protocols));
 
     wifi_bandwidths_t bandwidths = {
         .ghz_2g = MAIN_WIFI_BANDWIDTH_2G,
         .ghz_5g = MAIN_WIFI_BANDWIDTH_5G,
     };
-    MAIN_CHECK(esp_wifi_set_bandwidths(WIFI_IF_STA, &bandwidths));
+    MAIN_CHECK(esp_wifi_set_bandwidths(MAIN_WIFI_IF, &bandwidths));
 
     MAIN_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
-    MAIN_CHECK(esp_wifi_set_channel(MAIN_WIFI_CHANNEL, MAIN_WIFI_SECOND_CHANNEL));
+
+    if (!access_point) {
+        MAIN_CHECK(
+            esp_wifi_set_channel(MAIN_WIFI_CHANNEL, MAIN_WIFI_SECOND_CHANNEL));
+        return;
+    }
+
+    /* The AP's channel comes from its config. */
+    wifi_config_t ap_config = {
+        .ap =
+            {
+                .channel = MAIN_WIFI_CHANNEL,
+                .max_connection = MAIN_AP_MAX_STATIONS,
+                .authmode = LINK_AP_PASSWORD[0] != '\0' ? WIFI_AUTH_WPA2_PSK
+                                                        : WIFI_AUTH_OPEN,
+            },
+    };
+    strlcpy((char *)ap_config.ap.ssid, LINK_AP_SSID, sizeof(ap_config.ap.ssid));
+    ap_config.ap.ssid_len = strlen(LINK_AP_SSID);
+    strlcpy((char *)ap_config.ap.password, LINK_AP_PASSWORD,
+            sizeof(ap_config.ap.password));
+    MAIN_CHECK(esp_wifi_set_config(WIFI_IF_AP, &ap_config));
 }
 
 static void espnow_init(void) {
@@ -840,8 +956,9 @@ static void queues_and_task_init(void) {
         abort();
     }
 
-    BaseType_t created = xTaskCreate(output_task, "main_out", MAIN_TASK_STACK_BYTES, NULL,
-                                     MAIN_TASK_PRIORITY, &s_output_task);
+    BaseType_t created =
+        xTaskCreate(output_task, "main_out", MAIN_TASK_STACK_BYTES, NULL,
+                    MAIN_TASK_PRIORITY, &s_output_task);
 
     if (created != pdPASS) {
         ESP_LOGE(TAG, "xTaskCreate(main_out) failed");
@@ -854,20 +971,20 @@ void app_main(void) {
     wifi_init();
 
     uint8_t own_mac[ESP_NOW_ETH_ALEN];
-    MAIN_CHECK(esp_wifi_get_mac(WIFI_IF_STA, own_mac));
+    MAIN_CHECK(esp_wifi_get_mac(MAIN_WIFI_IF, own_mac));
 
     uint8_t primary_channel = 0;
     wifi_second_chan_t second_channel = WIFI_SECOND_CHAN_NONE;
     MAIN_CHECK(esp_wifi_get_channel(&primary_channel, &second_channel));
 
     wifi_bandwidths_t bandwidths = {0};
-    MAIN_CHECK(esp_wifi_get_bandwidths(WIFI_IF_STA, &bandwidths));
+    MAIN_CHECK(esp_wifi_get_bandwidths(MAIN_WIFI_IF, &bandwidths));
 
     ESP_LOGI(TAG, "================ CSI MAIN ================");
-    ESP_LOGI(TAG, "main_config,mac=" MACSTR ",links=%d,default_listen=%d", MAC2STR(own_mac),
-             LINK_MAX_LINKS, MAIN_DEFAULT_LISTEN_LINK);
-    ESP_LOGI(TAG, "main_config,channel=%u,second=%d,bw5g=%d", primary_channel, (int)second_channel,
-             (int)bandwidths.ghz_5g);
+    ESP_LOGI(TAG, "main_config,mac=" MACSTR ",links=%d,default_listen=%d",
+             MAC2STR(own_mac), LINK_MAX_LINKS, MAIN_DEFAULT_LISTEN_LINK);
+    ESP_LOGI(TAG, "main_config,channel=%u,second=%d,bw5g=%d", primary_channel,
+             (int)second_channel, (int)bandwidths.ghz_5g);
 
     /* Plain if (not #if) keeps the text-mode functions compiled and used. */
     if (MAIN_OUTPUT_ARI2_RELAY) {

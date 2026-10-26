@@ -3,6 +3,7 @@
 port is never opened: it would reset the doll.
 """
 
+import os
 import time
 
 import serial
@@ -43,11 +44,32 @@ def open_port(port_or_serial: str) -> serial.Serial:
     connection.port = resolve_port(port_or_serial)
     connection.baudrate = BAUD_RATE
     connection.timeout = READ_TIMEOUT_S
-    # DTR/RTS low so opening the port does not hold the board in reset.
-    connection.dtr = False
-    connection.rts = False
+
+    if os.name == "posix":
+        # Linux raises DTR and RTS together on open, which leaves the board running. Lowering
+        # them afterwards reset the board on every open (10-23), and so did the hangup on close.
+        clear_hangup_on_close(connection.port)
+    else:
+        # DTR/RTS low so opening the port does not hold the board in reset.
+        connection.dtr = False
+        connection.rts = False
+
     connection.open()
     return connection
+
+
+def clear_hangup_on_close(device: str) -> None:
+    """Turn off HUPCL so closing the port leaves DTR/RTS up (stty -hupcl). Lasts until replug."""
+    import termios
+
+    fd = os.open(device, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+
+    try:
+        attributes = termios.tcgetattr(fd)
+        attributes[2] &= ~termios.HUPCL
+        termios.tcsetattr(fd, termios.TCSANOW, attributes)
+    finally:
+        os.close(fd)
 
 
 def pulse_reset(port_or_serial: str, settle_s: float = 1.5, listen_s: float = 2.0) -> int:

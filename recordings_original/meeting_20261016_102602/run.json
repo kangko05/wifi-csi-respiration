@@ -1,0 +1,28 @@
+{
+ "argv": [
+  "--port",
+  "/dev/ttyUSB1=case",
+  "--port",
+  "/dev/ttyUSB2=main",
+  "--place",
+  "meeting-room",
+  "--empty-minutes",
+  "5",
+  "--start-delay",
+  "60"
+ ],
+ "mode": "live",
+ "sources": {
+  "case": "/dev/ttyUSB1",
+  "main": "/dev/ttyUSB2"
+ },
+ "place": "meeting-room",
+ "baselines_dir": "/home/kang/.workspace/wifi-csi-respiration/baselines",
+ "empty_minutes": 5.0,
+ "start_delay_s": 60.0,
+ "use_saved": false,
+ "window_s": 120.0,
+ "nominal_rate_hz": 100.0,
+ "rate_always": false,
+ "started": "2026-10-16T10:26:02+09:00"
+}

@@ -10,6 +10,7 @@ once, and another when packets come back.
 """
 
 import argparse
+import shutil
 import signal
 import socket
 import sys
@@ -26,6 +27,8 @@ from cli.ari2 import ChunkWriter, parse_packet
 STATUS_PERIOD_S = 60.0
 FLUSH_PERIOD_S = 1.0
 RECV_TIMEOUT_S = 0.5
+# The disk is shared with the fall-detection recorder (central_monitor): stop before it fills.
+MIN_FREE_BYTES = 1_500_000_000
 
 
 def chunk_name(host_ns: int) -> str:
@@ -103,6 +106,11 @@ def record(
                 writer.flush()
                 last_flush_s = time.monotonic()
 
+            if time.monotonic() - last_status_s >= STATUS_PERIOD_S and shutil.disk_usage(session_dir).free < MIN_FREE_BYTES:
+                write_marker(session_dir, f"stopped: less than {MIN_FREE_BYTES / 1e9:.1f} GB free")
+                print("disk nearly full; stopping", flush=True)
+                break
+
             if time.monotonic() - last_status_s >= STATUS_PERIOD_S:
                 rate = packets_since_status / (time.monotonic() - last_status_s)
                 print(
@@ -114,6 +122,9 @@ def record(
     except KeyboardInterrupt:
         pass
     finally:
+        # A second Ctrl+C or SIGTERM during close would cut the gzip trailer.
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
         writer.close()
         sock.close()
         write_marker(session_dir, "recorder stopped")

@@ -104,8 +104,7 @@ def _replay_or_baseline(args: argparse.Namespace, config: JudgeConfig) -> int:
     if args.command == "baseline":
         quiet = _baseline_from(records, args.baseline, clock, config)
         args.out.write_text(quiet.to_json())
-        print(f"baseline windows={len(quiet.scores)} median={quiet.median:.3f} mad={quiet.mad:.3f} "
-              f"threshold={quiet.threshold:.3f} -> {args.out}", file=sys.stderr)
+        _print_baseline(quiet, args.out, tz)
         return 0
 
     if args.baseline_file is not None:
@@ -199,9 +198,17 @@ def _baseline_live(args: argparse.Namespace, config: JudgeConfig) -> int:
     quiet = QuietBaseline.from_windows(scores, config)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(quiet.to_json())
-    print(f"baseline windows={len(quiet.scores)} median={quiet.median:.3f} mad={quiet.mad:.3f} "
-          f"threshold={quiet.threshold:.3f} -> {out}", file=sys.stderr)
+    _print_baseline(quiet, out)
     return 0
+
+
+def _print_baseline(quiet: QuietBaseline, out: Path, tz: dt.timezone | None = None) -> None:
+    for window in quiet.excluded:
+        print(f"{_fmt(window.end, tz)} excluded window score={window.score:.2f} motion={window.motion:.2f}%: {window.reason}",
+              file=sys.stderr)
+
+    print(f"baseline windows={len(quiet.scores)} excluded={len(quiet.excluded)} median={quiet.median:.3f} "
+          f"mad={quiet.mad:.3f} threshold={quiet.threshold:.3f} -> {out}", file=sys.stderr)
 
 
 def _live(args: argparse.Namespace, config: JudgeConfig) -> int:
@@ -364,7 +371,7 @@ def _load_baseline(explicit: Path | None, default: Path) -> tuple[QuietBaseline 
 def _print_threshold(quiet: QuietBaseline | None) -> None:
     if quiet is not None:
         print(f"threshold={quiet.threshold:.3f} (median {quiet.median:.3f} + {quiet.k:g} * mad {quiet.mad:.3f}, "
-              f"{len(quiet.scores)} windows)", file=sys.stderr)
+              f"{len(quiet.scores)} windows, {len(quiet.excluded)} excluded)", file=sys.stderr)
 
 
 def _read(args: argparse.Namespace) -> Iterator[CsiRecord]:

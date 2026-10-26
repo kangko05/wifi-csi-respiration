@@ -32,6 +32,9 @@ class JudgeConfig:
     min_fill: float = 0.6  # a window whose grid is emptier than this is not scored (0.6 not 0.9: the bedroom main path dropped to 75% delivery on 10-19 23:20 and the judge must keep scoring)
     baseline_k: float = 3.0  # threshold = median + k * MAD of the Quiet baseline scores
     baseline_min_ratio: float = 1.5  # and never below this multiple of the median (a stationary room has a tiny MAD)
+    # A baseline keeps at least this fraction of its windows after dropping motion and line windows, so a
+    # disturbed calibration still yields a baseline and its `excluded` list says why it is wide.
+    baseline_keep_ratio: float = 0.5
     confirm_windows: int = 2  # consecutive line windows that confirm BREATHING
     apnea_gap_s: float = 15.0  # no breath peak for this long ends BREATHING
     line_lost_windows: int = 9  # BREATHING with no Breathing line for this many consecutive windows is also APNEA (slow path, 90 s)
@@ -174,14 +177,33 @@ def window_scores(records: Iterable[CsiRecord], config: JudgeConfig) -> Iterator
 
 
 @dataclass(frozen=True)
+class ExcludedWindow:
+    """A calibration window the Quiet baseline did not learn from, and why."""
+
+    end: float
+    score: float
+    motion: float
+    reason: str
+
+    def to_dict(self) -> dict:
+        return {"end": self.end, "score": self.score, "motion": self.motion, "reason": self.reason}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ExcludedWindow":
+        return cls(end=float(data["end"]), score=float(data["score"]), motion=float(data["motion"]), reason=str(data["reason"]))
+
+
+@dataclass(frozen=True)
 class QuietBaseline:
     """Window scores recorded at the judge's place with no breathing source; the threshold
-    is median + k * MAD so one noisy window does not set it."""
+    is median + k * MAD so one noisy window does not set it. `from_windows` drops the windows
+    that were not quiet (see `clip_baseline_windows`) and lists them in `excluded`."""
 
     scores: tuple[float, ...]
     k: float
     min_ratio: float
     motions: tuple[float, ...] = ()
+    excluded: tuple[ExcludedWindow, ...] = ()
 
     @property
     def motion_level(self) -> float | None:
@@ -218,8 +240,14 @@ class QuietBaseline:
     @classmethod
     def from_windows(cls, windows: Iterable[WindowScore], config: JudgeConfig) -> "QuietBaseline":
         windows = tuple(windows)
-        quiet = cls.from_scores((w.score for w in windows), config)
-        return cls(scores=quiet.scores, k=quiet.k, min_ratio=quiet.min_ratio, motions=tuple(w.motion for w in windows))
+
+        if not windows:
+            raise ValueError(f"baseline needs more than {config.window_s:.0f} s of records")
+
+        kept, excluded = clip_baseline_windows(windows, config)
+        quiet = cls.from_scores((w.score for w in kept), config)
+        return cls(scores=quiet.scores, k=quiet.k, min_ratio=quiet.min_ratio, motions=tuple(w.motion for w in kept),
+                   excluded=excluded)
 
     @classmethod
     def from_records(cls, records: Iterable[CsiRecord], config: JudgeConfig) -> "QuietBaseline":
@@ -227,10 +255,54 @@ class QuietBaseline:
 
     def to_json(self) -> str:
         return json.dumps({"k": self.k, "min_ratio": self.min_ratio, "median": self.median, "mad": self.mad,
-                           "threshold": self.threshold, "scores": list(self.scores), "motions": list(self.motions)})
+                           "threshold": self.threshold, "scores": list(self.scores), "motions": list(self.motions),
+                           "excluded": [w.to_dict() for w in self.excluded]})
 
     @classmethod
     def from_json(cls, text: str) -> "QuietBaseline":
         data = json.loads(text)
         return cls(scores=tuple(float(s) for s in data["scores"]), k=float(data["k"]), min_ratio=float(data["min_ratio"]),
-                   motions=tuple(float(m) for m in data.get("motions", ())))
+                   motions=tuple(float(m) for m in data.get("motions", ())),
+                   excluded=tuple(ExcludedWindow.from_dict(w) for w in data.get("excluded", ())))
+
+
+def clip_baseline_windows(windows: Iterable[WindowScore],
+                          config: JudgeConfig) -> tuple[list[WindowScore], tuple[ExcludedWindow, ...]]:
+    """Splits calibration windows into the ones a Quiet baseline may learn from and the ones it
+    must not.
+
+    Motion first: a window whose motion RMS is above `motion_gate_ratio` x the median motion of
+    all windows is dropped, because a moving body stirs the breathing band as well. Then lines:
+    a window whose score is above the threshold the remaining windows would give (median + k *
+    MAD, floored by min_ratio) is dropped, and this repeats until no kept window would count as
+    a line against the baseline it is part of. Dropping stops at `baseline_keep_ratio` of the
+    windows; the highest offenders go first."""
+    kept = list(windows)
+    floor = max(1, math.ceil(config.baseline_keep_ratio * len(kept)))
+    excluded: list[ExcludedWindow] = []
+
+    def drop(candidates: list[WindowScore], reason: str) -> None:
+        room = len(kept) - floor
+        dropped = set(candidates[:room])
+
+        for window in candidates[:room]:
+            excluded.append(ExcludedWindow(window.end, window.score, window.motion, reason.format(window=window)))
+
+        kept[:] = [w for w in kept if w not in dropped]
+
+    if config.motion_gate_ratio > 0.0:
+        motion_limit = config.motion_gate_ratio * float(np.median([w.motion for w in kept]))
+        moving = sorted((w for w in kept if w.motion > motion_limit), key=lambda w: w.motion, reverse=True)
+        drop(moving, f"motion {{window.motion:.2f}} > {motion_limit:.2f}")
+
+    while len(kept) > floor:
+        quiet = QuietBaseline.from_scores((w.score for w in kept), config)
+        lines = sorted((w for w in kept if w.score > quiet.threshold), key=lambda w: w.score, reverse=True)
+
+        if not lines:
+            break
+
+        drop(lines, f"line {{window.score:.2f}} > {quiet.threshold:.2f}")
+
+    excluded.sort(key=lambda w: w.end)
+    return kept, tuple(excluded)

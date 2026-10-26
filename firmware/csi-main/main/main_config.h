@@ -11,6 +11,8 @@
 #include "link_config.h"
 
 #define MAIN_WIFI_BAND_MODE WIFI_BAND_MODE_5G_ONLY
+/* The AP channel in AP receive mode (MAIN_ARI2_RX_AP): the case boards
+ * (caselink ch) have to use the same one. */
 #define MAIN_WIFI_CHANNEL 36
 #define MAIN_WIFI_PROTOCOL_2G WIFI_PROTOCOL_11N
 #define MAIN_WIFI_PROTOCOL_5G WIFI_PROTOCOL_11N
@@ -34,9 +36,23 @@
 
 /* 1 (relay mode): the main unit also captures the CSI of every room
  * transmitter it hears (the main path) and writes it as ARI2 packets with
- * node MAIN_ARI2_NODE and room = link + 1, next to the relayed packets. */
-#define MAIN_ARI2_MAIN_PATH 1
+ * node MAIN_ARI2_NODE and room = link + 1, next to the relayed packets.
+ * Off when the main unit stands in for the main module (MAIN_ARI2_RX_AP),
+ * which only takes the receivers' UDP packets and hears no transmitter. */
+#define MAIN_ARI2_MAIN_PATH (!MAIN_ARI2_RX_AP)
 #define MAIN_ARI2_NODE 2
+
+/* 1 (relay mode): the main unit is the AP the case receivers join
+ * (caselink relay=3) and takes their ARI2 packets as UDP datagrams on
+ * MAIN_AP_UDP_PORT instead of ESP-NOW. SSID and password come from
+ * caselink/main/ap_secret.h, the file the case receivers are built with.
+ * The AP takes the default esp_netif address 192.168.4.1. */
+#define MAIN_ARI2_RX_AP 0
+#define MAIN_AP_UDP_PORT 3334
+#define MAIN_AP_MAX_STATIONS 4
+
+/* The interface the main unit runs on. */
+#define MAIN_WIFI_IF (MAIN_OUTPUT_ARI2_RELAY && MAIN_ARI2_RX_AP ? WIFI_IF_AP : WIFI_IF_STA)
 
 /* One ARI2 HT20 packet: 40-byte header + 57 IQ pairs. */
 #define MAIN_ARI2_PACKET_BYTES 154
