@@ -1,3 +1,0 @@
-start	2026-10-16T10:26:02.226
-port	/dev/ttyUSB2
-name	main

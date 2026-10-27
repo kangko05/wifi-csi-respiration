@@ -1,3 +1,0 @@
-start	2026-10-16T10:26:02.225
-port	/dev/ttyUSB1
-name	case
