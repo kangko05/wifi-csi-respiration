@@ -4,7 +4,8 @@ Two rules decide the state. The Breathing line rule works on the spectral window
 against the Quiet baseline threshold and confirms BREATHING after `confirm_windows`
 consecutive line windows. The Apnea rule works on the Breathing waveform in the time domain:
 once BREATHING is confirmed, `apnea_gap_s` without a breath peak means APNEA. APNEA is left
-only by the line rule, never by time.
+only by the line rule, never by time: on full windows, or on `return_confirm_windows` shorter
+windows when the baseline carries a `fast_return` baseline for them.
 
 A live source also calls `heartbeat(now)` while nothing arrives; after `input_stale_s` the
 judge reports "no input" with the state unchanged, once per step.
@@ -147,11 +148,15 @@ class BreathTracker:
         self._cell_sum += amplitude
         self._cell_count += 1
 
-    def start_segment(self, time: float) -> None:
-        """Learn the subcarrier weights and the peak reference from the buffered window and
-        continue the filter from the end of that window."""
+    def start_segment(self, time: float, since: float | None = None) -> None:
+        """Learn the subcarrier weights and the peak reference from the buffered window (from
+        `since` on, when given) and continue the filter from the end of that window."""
         config = self._config
         times, cells = self._window()
+
+        if since is not None:
+            keep = times >= since
+            times, cells = times[keep], cells[keep]
         self._mean, self._scale, self._sign = _fit_projection(cells)
         self._filters = _band_filters(config)
         waveform = np.array([self._filter(self._project(c)) for c in cells])
@@ -176,6 +181,10 @@ class BreathTracker:
 
     def _window(self) -> tuple[np.ndarray, np.ndarray]:
         return np.array([t for t, _ in self._cells]), np.stack([c for _, c in self._cells])
+
+    @property
+    def learned(self) -> bool:
+        return self._sign is not None
 
     @property
     def breath_threshold(self) -> float:
@@ -266,10 +275,17 @@ class Judge:
         self._last_input: float | None = None  # time of the latest record, or of the first heartbeat before any
         self._relearn = False  # BREATHING resumed after an input gap: no gap counting until the tracker relearns
         self._last_tick_time = -math.inf
+        self._return_windower = Windower(config.return_config)
+        self._return_streak = 0
+        self._last_window_motion = False
 
     def feed(self, record: CsiRecord) -> Tick | None:
         amplitude = np.abs(record.h).astype(np.float64)
+        tick = self._feed_full(record, amplitude)
+        returned = self._feed_return(record.time, amplitude)
+        return returned or tick
 
+    def _feed_full(self, record: CsiRecord, amplitude: np.ndarray) -> Tick | None:
         if self._last_input is not None and record.time - self._last_input >= self.config.input_stale_s:
             self._resume_after_gap(record.time)
 
@@ -298,6 +314,8 @@ class Judge:
         BREATHING, the gap is measured from that record."""
         self._tracker = BreathTracker(self.config)
         self._windower = Windower(self.config)
+        self._return_windower = Windower(self.config.return_config)
+        self._return_streak = 0
         self._streak = 0
         self._no_line_streak = 0  # windows before and after the loss are not consecutive
 
@@ -334,12 +352,55 @@ class Judge:
             if tick is not None:
                 yield tick
 
+    def _feed_return(self, time: float, amplitude: np.ndarray) -> Tick | None:
+        """APNEA back to BREATHING on short windows that hold the Breathing line and start after the
+        last breath before the gap, scored against the baseline's `fast_return`."""
+        quiet = None if self.baseline is None else self.baseline.fast_return
+
+        if quiet is None or quiet.window_s != self.config.return_window_s:
+            return None
+
+        window = self._return_windower.feed(time, amplitude)
+
+        if window is None:
+            return None
+
+        if self.state is not State.APNEA:
+            self._return_streak = 0
+            return None
+
+        config = self.config.return_config
+        score = window.score
+        low, high = config.breathing_band_rpm
+        # No return right after a motion window (a body moving stirs the breathing band too), and none before the
+        # tracker has a breath reference (input loss during APNEA resets it).
+        line = (score is not None and not self._last_window_motion and self._tracker.learned
+                and score.motion <= quiet.motion_threshold(config) and score.score > quiet.threshold
+                and low <= score.peak_rpm <= high and window.end - config.window_s >= self._apnea_since)
+        self._return_streak = self._return_streak + 1 if line else 0
+        confirm = config.return_confirm_windows
+
+        if self._return_streak < confirm:
+            return None
+
+        self.state = transition(State.APNEA, True, False)
+        self._relearn = False
+        self._streak = 0
+        self._return_streak = 0
+        # Relearn only from the span the return windows checked: the rest of the buffer holds the pause (10-21
+        # 11:13, no breath reference) or the motion before it (10-16 11:00, reference 3x too high).
+        self._tracker.start_segment(window.end, since=window.end - config.window_s - (confirm - 1) * config.step_s)
+        return self._tick(window.end, f"returned {confirm}/{confirm} on {config.window_s:.0f} s windows")
+
     def _judge_window(self, window: Window) -> Tick:
         confirm = self.config.confirm_windows
         low, high = self.config.breathing_band_rpm
         score = window.score
 
-        if score is not None and self.baseline is not None and score.motion > self.baseline.motion_threshold(self.config):
+        self._last_window_motion = (score is not None and self.baseline is not None
+                                    and score.motion > self.baseline.motion_threshold(self.config))
+
+        if self._last_window_motion:
             self._streak = 0
             self._last_score = score
             self._last_line = False

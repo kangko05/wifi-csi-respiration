@@ -25,7 +25,7 @@ from breathing.check import baseline_interval, check_ticks
 from breathing.display import REFRESH_S, KeyInput, LiveView, Screen, colours, render
 from breathing.judge import Judge, State
 from breathing.markers import BASELINE_END, BASELINE_START, read_markers, write_marker
-from breathing.scoring import JudgeConfig, QuietBaseline, window_scores
+from breathing.scoring import JudgeConfig, QuietBaseline, calibration_scores
 from breathing.sources import CsiRecord, live_frames, read_ari2_recording, read_frames_recording, tail_ari2_recording
 
 BASELINE_DIR = Path(__file__).resolve().parent.parent / "baselines"
@@ -159,6 +159,7 @@ def _baseline_live(args: argparse.Namespace, config: JudgeConfig) -> int:
     deadline = time.time() + args.minutes * 60.0
     last_notice = time.time()
     scores = []
+    return_scores = []
     print(f"Quiet baseline for {args.minutes:g} min; keep the room still (doll off)", file=sys.stderr)
 
     if marker_dir is not None:
@@ -181,7 +182,11 @@ def _baseline_live(args: argparse.Namespace, config: JudgeConfig) -> int:
                 yield item
 
     try:
-        for window in window_scores(until_deadline(), config):
+        for is_return, window in calibration_scores(until_deadline(), config):
+            if is_return:
+                return_scores.append(window)
+                continue
+
             scores.append(window)
             print(f"{_fmt(window.end)} window {len(scores)} score={window.score:.2f} "
                   f"peak={window.peak_rpm:.1f}/min fill={window.fill:.2f} motion={window.motion:.2f}%", file=sys.stderr)
@@ -195,7 +200,7 @@ def _baseline_live(args: argparse.Namespace, config: JudgeConfig) -> int:
         print("no window scored: no input, or less than a window of records", file=sys.stderr)
         return 1
 
-    quiet = QuietBaseline.from_windows(scores, config)
+    quiet = QuietBaseline.from_windows(scores, config, return_scores)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(quiet.to_json())
     _print_baseline(quiet, out)
@@ -207,8 +212,10 @@ def _print_baseline(quiet: QuietBaseline, out: Path, tz: dt.timezone | None = No
         print(f"{_fmt(window.end, tz)} excluded window score={window.score:.2f} motion={window.motion:.2f}%: {window.reason}",
               file=sys.stderr)
 
+    fast = quiet.fast_return
+    fast_note = "" if fast is None else f" return-window threshold={fast.threshold:.3f} ({len(fast.scores)} windows)"
     print(f"baseline windows={len(quiet.scores)} excluded={len(quiet.excluded)} median={quiet.median:.3f} "
-          f"mad={quiet.mad:.3f} threshold={quiet.threshold:.3f} -> {out}", file=sys.stderr)
+          f"mad={quiet.mad:.3f} threshold={quiet.threshold:.3f}{fast_note} -> {out}", file=sys.stderr)
 
 
 def _live(args: argparse.Namespace, config: JudgeConfig) -> int:
@@ -341,8 +348,7 @@ def _add_stream_options(parser: argparse.ArgumentParser) -> None:
 def _add_judge_options(parser: argparse.ArgumentParser) -> None:
     low, high = JudgeConfig.breathing_band_rpm
     parser.add_argument("--band", type=float, nargs=2, metavar=("LOW", "HIGH"),
-                        help=f"breathing band in /min (default {low:g} {high:g}); the doll demo uses 10 20 because an empty"
-                             " lab room showed a 23-24/min floor line (2026-10-21)")
+                        help=f"breathing band in /min (default {low:g} {high:g}, the doll demo band; a sleeper used 8 24)")
 
 
 def _judge_config(args: argparse.Namespace) -> JudgeConfig:

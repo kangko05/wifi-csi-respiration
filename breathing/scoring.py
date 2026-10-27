@@ -12,7 +12,7 @@ import json
 import math
 from collections import deque
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -27,7 +27,9 @@ class JudgeConfig:
     step_s: float = 10.0
     rate_hz: float = 100.0
     search_band_hz: tuple[float, float] = (0.08, 0.8)
-    breathing_band_rpm: tuple[float, float] = (8.0, 24.0)  # 24 not 30: a 26-28/min periodic signal shows up in empty rooms (10-18 and 10-19 nights)
+    # The doll demo band (demo.py and demo_ui.py pass it too): the lab room showed a 23-24/min floor line on 10-21.
+    # For a sleeper the band was 8-24 (24 not 30: a 26-28/min periodic signal shows up in empty rooms, 10-18/10-19).
+    breathing_band_rpm: tuple[float, float] = (10.0, 20.0)
     min_mean_amplitude: float = 1.0  # subcarriers quieter than this are dropped from the spectrum
     min_fill: float = 0.6  # a window whose grid is emptier than this is not scored (0.6 not 0.9: the bedroom main path dropped to 75% delivery on 10-19 23:20 and the judge must keep scoring)
     baseline_k: float = 3.0  # threshold = median + k * MAD of the Quiet baseline scores
@@ -38,6 +40,11 @@ class JudgeConfig:
     confirm_windows: int = 2  # consecutive line windows that confirm BREATHING
     apnea_gap_s: float = 15.0  # no breath peak for this long ends BREATHING
     line_lost_windows: int = 9  # BREATHING with no Breathing line for this many consecutive windows is also APNEA (slow path, 90 s)
+    # APNEA also returns to BREATHING on this many consecutive shorter windows scored against their own Quiet
+    # baseline. 10-21 doll replay: back to BREATHING 48 s -> 26 s after the doll resumed, pauses caught 9/10 -> 10/10;
+    # one 30 s window instead of two returned in 17% of empty-room steps (docs/reports/20261026-return-speed.md).
+    return_window_s: float = 30.0
+    return_confirm_windows: int = 2
     waveform_band_hz: tuple[float, float] = (0.1, 0.6)
     waveform_rate_hz: float = 20.0
     waveform_sections: int = 2  # cascaded 2nd-order Butterworth sections per band edge
@@ -53,6 +60,11 @@ class JudgeConfig:
     @property
     def min_breath_interval_s(self) -> float:
         return 60.0 / self.breathing_band_rpm[1]
+
+    @property
+    def return_config(self) -> "JudgeConfig":
+        """The same judge numbers on the return window."""
+        return replace(self, window_s=self.return_window_s)
 
 
 @dataclass(frozen=True)
@@ -176,6 +188,20 @@ def window_scores(records: Iterable[CsiRecord], config: JudgeConfig) -> Iterator
             yield window.score
 
 
+def calibration_scores(records: Iterable[CsiRecord], config: JudgeConfig) -> Iterator[tuple[bool, WindowScore]]:
+    """One pass over a calibration stream scoring both window lengths: (is_return_window, score)."""
+    windowers = ((False, Windower(config)), (True, Windower(config.return_config)))
+
+    for record in records:
+        amplitude = np.abs(record.h)
+
+        for is_return, windower in windowers:
+            window = windower.feed(record.time, amplitude)
+
+            if window is not None and window.score is not None:
+                yield is_return, window.score
+
+
 @dataclass(frozen=True)
 class ExcludedWindow:
     """A calibration window the Quiet baseline did not learn from, and why."""
@@ -197,13 +223,17 @@ class ExcludedWindow:
 class QuietBaseline:
     """Window scores recorded at the judge's place with no breathing source; the threshold
     is median + k * MAD so one noisy window does not set it. `from_windows` drops the windows
-    that were not quiet (see `clip_baseline_windows`) and lists them in `excluded`."""
+    that were not quiet (see `clip_baseline_windows`) and lists them in `excluded`. `fast_return`
+    is the same calibration scored on `return_window_s` windows; without it the judge leaves APNEA
+    on full windows only."""
 
     scores: tuple[float, ...]
     k: float
     min_ratio: float
     motions: tuple[float, ...] = ()
     excluded: tuple[ExcludedWindow, ...] = ()
+    fast_return: "QuietBaseline | None" = None
+    window_s: float | None = None  # window length the scores were taken on; None in files written before 10-27
 
     @property
     def motion_level(self) -> float | None:
@@ -238,7 +268,9 @@ class QuietBaseline:
         return cls(scores=scores, k=config.baseline_k, min_ratio=config.baseline_min_ratio)
 
     @classmethod
-    def from_windows(cls, windows: Iterable[WindowScore], config: JudgeConfig) -> "QuietBaseline":
+    def from_windows(cls, windows: Iterable[WindowScore], config: JudgeConfig,
+                     return_windows: Iterable[WindowScore] = ()) -> "QuietBaseline":
+        """`return_windows`, scored on `return_window_s` windows, give `fast_return`; none leave it unset."""
         windows = tuple(windows)
 
         if not windows:
@@ -246,24 +278,46 @@ class QuietBaseline:
 
         kept, excluded = clip_baseline_windows(windows, config)
         quiet = cls.from_scores((w.score for w in kept), config)
+        return_windows = tuple(return_windows)
+        fast_return = cls.from_windows(return_windows, config.return_config) if return_windows else None
         return cls(scores=quiet.scores, k=quiet.k, min_ratio=quiet.min_ratio, motions=tuple(w.motion for w in kept),
-                   excluded=excluded)
+                   excluded=excluded, fast_return=fast_return, window_s=config.window_s)
 
     @classmethod
     def from_records(cls, records: Iterable[CsiRecord], config: JudgeConfig) -> "QuietBaseline":
-        return cls.from_windows(window_scores(records, config), config)
+        windows: dict[bool, list[WindowScore]] = {False: [], True: []}
+
+        for is_return, score in calibration_scores(records, config):
+            windows[is_return].append(score)
+
+        return cls.from_windows(windows[False], config, windows[True])
+
+    def to_dict(self) -> dict:
+        data = {"k": self.k, "min_ratio": self.min_ratio, "median": self.median, "mad": self.mad,
+                "threshold": self.threshold, "scores": list(self.scores), "motions": list(self.motions),
+                "excluded": [w.to_dict() for w in self.excluded], "window_s": self.window_s}
+
+        if self.fast_return is not None:
+            data["fast_return"] = self.fast_return.to_dict()
+
+        return data
 
     def to_json(self) -> str:
-        return json.dumps({"k": self.k, "min_ratio": self.min_ratio, "median": self.median, "mad": self.mad,
-                           "threshold": self.threshold, "scores": list(self.scores), "motions": list(self.motions),
-                           "excluded": [w.to_dict() for w in self.excluded]})
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "QuietBaseline":
+        fast_return = data.get("fast_return")
+        window_s = data.get("window_s")
+        return cls(scores=tuple(float(s) for s in data["scores"]), k=float(data["k"]), min_ratio=float(data["min_ratio"]),
+                   motions=tuple(float(m) for m in data.get("motions", ())),
+                   excluded=tuple(ExcludedWindow.from_dict(w) for w in data.get("excluded", ())),
+                   fast_return=None if fast_return is None else cls.from_dict(fast_return),
+                   window_s=None if window_s is None else float(window_s))
 
     @classmethod
     def from_json(cls, text: str) -> "QuietBaseline":
-        data = json.loads(text)
-        return cls(scores=tuple(float(s) for s in data["scores"]), k=float(data["k"]), min_ratio=float(data["min_ratio"]),
-                   motions=tuple(float(m) for m in data.get("motions", ())),
-                   excluded=tuple(ExcludedWindow.from_dict(w) for w in data.get("excluded", ())))
+        return cls.from_dict(json.loads(text))
 
 
 def clip_baseline_windows(windows: Iterable[WindowScore],
