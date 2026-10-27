@@ -1,7 +1,5 @@
 # wifi-csi-respiration (demo-ui)
 
-ESP32-C5 CSI로 인형 호흡과 무호흡을 판정하는 시연용 브랜치. 실행 방법만 적는다.
-
 ## 준비
 
 ```
@@ -12,7 +10,7 @@ python -m venv .venv
 
 Python 3.10 이상. 아래 명령은 저장소 루트에서 실행한다. Windows에서는 `python -X utf8`로 실행한다.
 
-## 시연
+## 실행
 
 ```
 python tools/demo_ui.py demo --serial <메인 ESP USB serial> --start-delay 60 --port 8080
@@ -48,7 +46,7 @@ pip install pytest
 python -m pytest -q
 ```
 
-리플레이 테스트는 `recordings/meeting_20261016_102602/`가 있을 때 돈다. 녹화는 ksrv `/tank/wifi-csi/recordings/`에 있다. 없으면 건너뛴다.
+리플레이 테스트는 `recordings/meeting_20261016_102602/`가 있을 때 돈다.
 
 ## 판정 규칙 요약
 
