@@ -1,6 +1,6 @@
 """The demo in three commands, on top of the recorder (tools/record_main.py) that owns the port.
 
-  run <name> [--node 2] [--minutes 3] [--udp-port 3334] [--port 8090] [--voice-server ...]
+  run <name> [--node 1] [--minutes 3] [--udp-port 3334] [--port 8090] [--voice-server ...]
       Everything in one command on the main module: starts tools/record_udp.py (case RX with
       relay=3 sends over the AP), checks that room 1 / <node> packets arrive, then calibrate and
       judge on that session. Ctrl+C stops the judges and the recorder.
@@ -8,7 +8,7 @@
   calibrate <session> [--minutes 3] [--out-dir baselines]
       Quiet baseline for the Breathing judge (bedroom Main path, `breathing baseline-live`),
       then Presence thresholds from the same minutes (`presence thresholds`). Keep the room
-      empty and the doll off for the whole time. The baseline goes to baselines/1_2.json, the
+      empty and the doll off for the whole time. The baseline goes to baselines/1_<node>.json, the
       file `breathing live` reads by default.
   judge <session> [--baselines-dir baselines] [--port 8090] [--voice-server http://127.0.0.1:8765]
       Start the Breathing live judge, the Presence live judge, the phone page and the bridge that
@@ -40,7 +40,7 @@ WINDOW_S = 60.0
 ARRIVAL_WAIT_S = 15.0
 
 
-def calibrate(session: Path, minutes: float, out_dir: Path, node: int = 2) -> int:
+def calibrate(session: Path, minutes: float, out_dir: Path, node: int = 1) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     breathing_out = out_dir / f"1_{node}.json"
     presence_out = out_dir / "presence.json"
@@ -108,7 +108,7 @@ def calibrate(session: Path, minutes: float, out_dir: Path, node: int = 2) -> in
     return 0
 
 
-def judge(session: Path, baselines_dir: Path, port: int, voice_server: str, node: int = 2) -> int:
+def judge(session: Path, baselines_dir: Path, port: int, voice_server: str, node: int = 1) -> int:
     breathing_baseline = baselines_dir / f"1_{node}.json"
     presence_thresholds = baselines_dir / "presence.json"
 
@@ -341,18 +341,18 @@ def main() -> int:
     cal.add_argument("session", type=Path)
     cal.add_argument("--minutes", type=float, default=3.0)
     cal.add_argument("--out-dir", type=Path, default=ROOT / "baselines")
-    cal.add_argument("--node", type=int, default=2, help="1 case link, 2 Main path (default)")
+    cal.add_argument("--node", type=int, default=1, help="1 case link (default), 2 Main path")
 
     jud = commands.add_parser("judge")
     jud.add_argument("session", type=Path)
     jud.add_argument("--baselines-dir", type=Path, default=ROOT / "baselines")
     jud.add_argument("--port", type=int, default=8090)
     jud.add_argument("--voice-server", default="http://127.0.0.1:8765")
-    jud.add_argument("--node", type=int, default=2, help="1 case link, 2 Main path (default)")
+    jud.add_argument("--node", type=int, default=1, help="1 case link (default), 2 Main path")
 
     rn = commands.add_parser("run")
     rn.add_argument("name")
-    rn.add_argument("--node", type=int, default=2, help="1 case link, 2 Main path (default)")
+    rn.add_argument("--node", type=int, default=1, help="1 case link (default), 2 Main path")
     rn.add_argument("--minutes", type=float, default=3.0)
     rn.add_argument("--udp-port", type=int, default=3334)
     rn.add_argument("--baselines-dir", type=Path, default=ROOT / "baselines")

@@ -13,21 +13,23 @@ Python 3.10 이상. 아래 명령은 저장소 루트에서 실행한다. Window
 ## 실행
 
 ```
-python tools/demo_ui.py demo --serial <메인 ESP USB serial> --start-delay 60 --port 8080
+python tools/demo_ui.py demo --start-delay 60 --port 8080
 ```
+
+메인 모듈에서 돌리는 기본 구성이다. 케이스 RX(`relay=3`)가 메인 모듈 AP로 보내는 UDP 3334를 받고, node 1(케이스 링크)을 판정한다. 8080이 쓰이고 있으면 `--port`를 다른 번호로 바꾼다.
 
 같은 네트워크의 폰이나 노트북에서 `http://<이 PC IP>:8080/`을 연다.
 
-1. **calibrate** 누르고 방을 비운다. 60초 뒤 3분 동안 기준선을 잰다. 인형은 꺼 둔다. 기준선은 `baselines/1_2.json`에 저장된다.
+1. **calibrate** 누르고 방을 비운다. 60초 뒤 3분 동안 기준선을 잰다. 인형은 꺼 둔다. 기준선은 `baselines/1_1.json`에 저장된다.
 2. **start** 누르고 인형을 켠다. 페이지에 준비 중 / 확인 중 / 호흡 있음 / 무호흡이 뜬다.
 3. **stop** 으로 끝낸다.
 
 - 기준선 측정이 끝나면 터미널에 `threshold=...`가 찍힌다. 중앙값이 3을 넘으면 방이 조용하지 않았던 것이니 다시 잰다.
-- 메인 ESP가 UDP로 받는 구성이면 `--serial` 대신 `--udp-port 3334`.
+- 노트북+메인 ESP 구성(메인 ESP UART, 메인 경로)이면 `--serial <메인 ESP USB serial> --node 2`. 기준선은 `baselines/1_2.json`.
 - 보드 없이 페이지만 돌려 보려면 `--fake`.
 - 마커(인형 켬·멈춤·재개)를 남기려면 `python tools/marker_server.py recordings/<세션> --port 8090 --no-apnea-hold`를 따로 띄운다.
 
-보드 설정(채널, 역할)은 `docs/20261026-demo-run.md` 구성 표를 따른다. 10-26 기준 메인 ESP는 ESP-NOW 수신, 케이스 TX/RX는 ch36 bw20, RX `relay=2`.
+보드 설정(채널, 역할)은 `docs/20261027-main-module-firmware.md`를 따른다. 10-27 기준 케이스 TX/RX는 ch157 bw20, RX `relay=3`(메인 모듈 AP `arimo-hub`). 노트북 구성(ch36, RX `relay=2`, 메인 ESP ESP-NOW 수신)은 `docs/20261026-demo-run.md` 구성 표다.
 
 ## 녹화 다시 판정
 

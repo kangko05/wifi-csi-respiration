@@ -1,6 +1,6 @@
 """Demo page: three buttons (calibrate, start, stop) and the Breathing state, in a browser.
 
-usage: demo_ui.py [NAME] [--node 2] [--minutes 3] [--start-delay 0] [--udp-port 3334]
+usage: demo_ui.py [NAME] [--node 1] [--minutes 3] [--start-delay 0] [--udp-port 3334]
                   [--serial SERIAL] [--fake] [--port 8080] [--baselines-dir baselines]
 
   calibrate  Opens a recording and runs `breathing baseline-live` on it for --minutes (room 1,
@@ -511,7 +511,7 @@ def make_handler(demo: Demo):
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("name", nargs="?", default="demo", help="session name (default demo)")
-    parser.add_argument("--node", type=int, default=2, help="1 case link, 2 Main path (default)")
+    parser.add_argument("--node", type=int, default=1, help="1 case link (default), 2 Main path")
     parser.add_argument("--minutes", type=float, default=3.0, help="calibration length (default 3)")
     parser.add_argument("--start-delay", type=float, default=0.0,
                         help="seconds between the calibrate button and the baseline start, to leave the room")
